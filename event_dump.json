@@ -1,0 +1,29 @@
+{
+    "0": {
+        "description": "off - thx logo blast 2", 
+        "direction": "front", 
+        "hwprofile": "FAN_hwprofile.json", 
+        "hwtype": "FAN_hwtype", 
+        "pattern": "wavefromfront", 
+        "position": 0, 
+        "strength": 0, 
+        "t_transition": 0.5, 
+        "ts_center": 33.5, 
+        "ts_lead": 30.0, 
+        "wavespeed": 1.0
+    }, 
+    "1": {
+        "address_i2c": 64, 
+        "channel_lsb": 20, 
+        "channel_msb": 21, 
+        "delay": 1.9, 
+        "direction": "front", 
+        "high": 10, 
+        "low": 6, 
+        "medium": 8, 
+        "update_value": true, 
+        "value_previous": 0, 
+        "xpos": 0, 
+        "ypos": 0
+    }
+}

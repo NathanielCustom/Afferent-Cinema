@@ -1,0 +1,11 @@
+{
+"files":
+	[
+	{
+	"hwprofile":"LED_hwprofile.json",
+	"hw_type":"LED_hwtype",
+	"events":"LED_events.json",
+	"custom_colors":"LED_events_colors.json"
+	}
+	]
+}

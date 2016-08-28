@@ -1,0 +1,10 @@
+{
+"files":
+	[
+	{
+	"hwprofile":"FAN_hwprofile.json",
+	"hw_type":"FAN_hwtype",
+	"events":"FAN_events.json"
+	}
+	]
+}

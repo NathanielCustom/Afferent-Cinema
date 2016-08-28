@@ -1,0 +1,151 @@
+{
+    "0": [
+        {
+            "color": "black", 
+            "direction": "front", 
+            "hwprofile": "LED_hwprofile.json", 
+            "hwtype": "LED_hwtype", 
+            "pattern": "wavefromfront", 
+            "position": 0, 
+            "t_transition": 0.25, 
+            "ts_center": 177.5, 
+            "ts_lead": 177.5, 
+            "wavespeed": 1.0
+        }, 
+        {
+            "address_i2c": 64, 
+            "channel_lsb": 8, 
+            "channel_msb": 9, 
+            "color": "red", 
+            "value_previous": 100.0, 
+            "xpos": 0, 
+            "ypos": 0
+        }, 
+        {
+            "address_i2c": 64, 
+            "channel_lsb": 12, 
+            "channel_msb": 13, 
+            "color": "green", 
+            "value_previous": 100.0, 
+            "xpos": 0, 
+            "ypos": 0
+        }, 
+        {
+            "address_i2c": 64, 
+            "channel_lsb": 16, 
+            "channel_msb": 17, 
+            "color": "blue", 
+            "value_previous": 100.0, 
+            "xpos": 0, 
+            "ypos": 0
+        }, 
+        {
+            "address_i2c": 64, 
+            "channel_lsb": 24, 
+            "channel_msb": 25, 
+            "color": "red", 
+            "value_previous": 100.0, 
+            "xpos": -2, 
+            "ypos": 0
+        }, 
+        {
+            "address_i2c": 64, 
+            "channel_lsb": 28, 
+            "channel_msb": 29, 
+            "color": "green", 
+            "value_previous": 100.0, 
+            "xpos": -2, 
+            "ypos": 0
+        }, 
+        {
+            "address_i2c": 64, 
+            "channel_lsb": 32, 
+            "channel_msb": 33, 
+            "color": "blue", 
+            "value_previous": 100.0, 
+            "xpos": -2, 
+            "ypos": 0
+        }, 
+        {
+            "address_i2c": 64, 
+            "channel_lsb": 36, 
+            "channel_msb": 37, 
+            "color": "red", 
+            "value_previous": 100.0, 
+            "xpos": 2, 
+            "ypos": 0
+        }, 
+        {
+            "address_i2c": 64, 
+            "channel_lsb": 40, 
+            "channel_msb": 41, 
+            "color": "green", 
+            "value_previous": 100.0, 
+            "xpos": 2, 
+            "ypos": 0
+        }, 
+        {
+            "address_i2c": 64, 
+            "channel_lsb": 44, 
+            "channel_msb": 45, 
+            "color": "blue", 
+            "value_previous": 100.0, 
+            "xpos": 2, 
+            "ypos": 0
+        }, 
+        {
+            "address_i2c": 64, 
+            "channel_lsb": 48, 
+            "channel_msb": 49, 
+            "color": "red", 
+            "value_previous": 100.0, 
+            "xpos": 0, 
+            "ypos": -3
+        }, 
+        {
+            "address_i2c": 64, 
+            "channel_lsb": 52, 
+            "channel_msb": 53, 
+            "color": "green", 
+            "value_previous": 100.0, 
+            "xpos": 0, 
+            "ypos": -3
+        }, 
+        {
+            "address_i2c": 64, 
+            "channel_lsb": 56, 
+            "channel_msb": 57, 
+            "color": "blue", 
+            "value_previous": 100.0, 
+            "xpos": 0, 
+            "ypos": -3
+        }, 
+        {
+            "address_i2c": 64, 
+            "channel_lsb": 60, 
+            "channel_msb": 61, 
+            "color": "red", 
+            "value_previous": 100.0, 
+            "xpos": 0, 
+            "ypos": -6
+        }, 
+        {
+            "address_i2c": 64, 
+            "channel_lsb": 64, 
+            "channel_msb": 65, 
+            "color": "green", 
+            "value_previous": 100.0, 
+            "xpos": 0, 
+            "ypos": -6
+        }, 
+        {
+            "address_i2c": 64, 
+            "channel_lsb": 68, 
+            "channel_msb": 69, 
+            "color": "blue", 
+            "value_previous": 100.0, 
+            "xpos": 0, 
+            "ypos": -6
+        }
+    ]
+}
