@@ -1,0 +1,145 @@
+{
+    "0x28":
+        {
+            "address": 40,
+            "controller":"ATMega328_I2C_to_Pixel",
+            "controller_driver":"Hardware.ATMega328_I2C_to_Pixel.ATMega328_I2C_to_Pixel",
+            "device_group":
+                {
+                    "00":
+                        {
+                            "address":[0,1,2,3,4,5,6],
+                            "device":"WS281x",
+                            "device_driver":"Hardware.ATMega328_I2C_to_Pixel.WS281x.WS281x",
+                            "cluster":0,
+                            "values_ID":["red", "green", "blue"],
+                            "values":[0,0,0],
+                            "x_position":1,
+                            "y_position":0
+                        },
+                    "01":
+                        {
+                            "address":[7,8,9,10,11,12,13],
+                            "device":"WS281x",
+                            "device_driver":"Hardware.ATMega328_I2C_to_Pixel.WS281x.WS281x",
+                            "cluster":0,
+                            "values_ID":["red", "green", "blue"],
+                            "values":[0,0,0],
+                            "x_position":1,
+                            "y_position":-1
+                        },
+                    "02":
+                        {
+                            "address":[14,15,16,17,18,19,20],
+                            "device":"WS281x",
+                            "device_driver":"Hardware.ATMega328_I2C_to_Pixel.WS281x.WS281x",
+                            "cluster":0,
+                            "values_ID":["red", "green", "blue"],
+                            "values":[0,0,0],
+                            "x_position":1,
+                            "y_position":-2
+                        },
+                    "03":
+                        {
+                            "address":[21,22,23,24,25,26,27],
+                            "device":"WS281x",
+                            "device_driver":"Hardware.ATMega328_I2C_to_Pixel.WS281x.WS281x",
+                            "cluster":0,
+                            "values_ID":["red", "green", "blue"],
+                            "values":[0,0,0],
+                            "x_position":0,
+                            "y_position":-2
+                        },
+                    "04":
+                        {
+                            "address":[28,29,30,31,32,33,34],
+                            "device":"WS281x",
+                            "device_driver":"Hardware.ATMega328_I2C_to_Pixel.WS281x.WS281x",
+                            "cluster":0,
+                            "values_ID":["red", "green", "blue"],
+                            "values":[0,0,0],
+                            "x_position":0,
+                            "y_position":-1
+                        },
+                    "05":
+                        {
+                            "address":[35,36,37,38,39,40,41],
+                            "device":"WS281x",
+                            "device_driver":"Hardware.ATMega328_I2C_to_Pixel.WS281x.WS281x",
+                            "cluster":0,
+                            "values_ID":["red", "green", "blue"],
+                            "values":[0,0,0],
+                            "x_position":0,
+                            "y_position":0
+                        },
+                    "06":
+                        {
+                            "address":[42,43,44,45,46,47,48],
+                            "device":"WS281x",
+                            "device_driver":"Hardware.ATMega328_I2C_to_Pixel.WS281x.WS281x",
+                            "cluster":0,
+                            "values_ID":["red", "green", "blue"],
+                            "values":[0,0,0],
+                            "x_position":-1,
+                            "y_position":0
+                        },
+                    "07":
+                        {
+                            "address":[49,50,51,52,53,54,55],
+                            "device":"WS281x",
+                            "device_driver":"Hardware.ATMega328_I2C_to_Pixel.WS281x.WS281x",
+                            "cluster":0,
+                            "values_ID":["red", "green", "blue"],
+                            "values":[0,0,0],
+                            "x_position":-1,
+                            "y_position":-1
+                        },
+                    "08":
+                        {
+                            "address":[56,57,58,59,60,61,62],
+                            "device":"WS281x",
+                            "device_driver":"Hardware.ATMega328_I2C_to_Pixel.WS281x.WS281x",
+                            "cluster":0,
+                            "values_ID":["red", "green", "blue"],
+                            "values":[0,0,0],
+                            "x_position":-1,
+                            "y_position":-2
+                        }                                                                                                                                                                                                
+                }
+
+        },
+    
+    "0x40":
+        {
+            "address": 64,
+            "controller":"PCA9685",
+            "controller_driver":"Hardware.PCA9685.PCA9685",
+            "device_group":
+                {
+                    "00":
+                        {
+                            "address":[0,1,2],
+                            "device":"RGB_LED_Screen_Light",
+                            "device_driver":"Hardware.PCA9685.RGB_LED_Screen_Light.RGB_LED",
+                            "values_ID":["red", "green", "blue"],
+                            "values":[0,0,0],
+                            "x_position":0,
+                            "y_position":0
+                        }, 
+                    "01":
+                        {
+                            "address":[15],
+                            "delay": 7.0,
+                            "device":"House_Fan",
+                            "device_driver":"Hardware.PCA9685.House_Fan.Box_Fan",
+                            "high":200,
+                            "medium":150,
+                            "low":20,
+                            "value":[0],
+                            "x_position":0,
+                            "y_position":0
+                        }                                           
+                }
+
+        }
+}

@@ -1,0 +1,66 @@
+{
+    "device": "House_Fan",
+    "controller":"PCA9685",
+    "events": [
+        {
+            "value": [80], 
+            "description":"dolly across water",
+            "direction": "null",
+            "pattern": "pulseall", 
+            "position": 0, 
+            "time_transition": 0.1, 
+            "timestamp_center_start": 35, 
+            "wavespeed": 1
+        },
+        {
+            "value": [0], 
+            "description":"dolly across water ends",
+            "direction": "null",
+            "pattern": "pulseall", 
+            "position": 0, 
+            "time_transition": 0.1, 
+            "timestamp_center_start": 45, 
+            "wavespeed": 1
+        },
+        {
+            "value": [255], 
+            "description":"sheep taken",
+            "direction": "null",
+            "pattern": "pulseall", 
+            "position": 0, 
+            "time_transition": 0.1, 
+            "timestamp_center_start": 61, 
+            "wavespeed": 1
+        },
+        {
+            "value": [0], 
+            "description":"sheep taken end",
+            "direction": "null",
+            "pattern": "pulseall", 
+            "position": 0, 
+            "time_transition": 0.1, 
+            "timestamp_center_start": 62, 
+            "wavespeed": 1
+        },
+        {
+            "value": [255], 
+            "description":"sets off device",
+            "direction": "null",
+            "pattern": "pulseall", 
+            "position": 0, 
+            "time_transition": 0.1, 
+            "timestamp_center_start": 218, 
+            "wavespeed": 1
+        },
+        {
+            "value": [0], 
+            "description":"sets off device end",
+            "direction": "null",
+            "pattern": "pulseall", 
+            "position": 0, 
+            "time_transition": 0.1, 
+            "timestamp_center_start": 220, 
+            "wavespeed": 1
+        }                                                                  
+    ]
+}

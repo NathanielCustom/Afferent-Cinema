@@ -1,0 +1,186 @@
+{
+    "device": "RGB_LED_Screen_Light",
+    "controller":"PCA9685",
+    "events": [
+        {
+            "color": [200, 100, 0], 
+            "description":"fireball against door",
+            "direction": "null", 
+            "pattern": "pulseall", 
+            "position": 0, 
+            "time_transition": 0.5, 
+            "timestamp_center_start": 70.5, 
+            "wavespeed": 1.0
+        }, 
+        {
+            "color": [0, 0, 0],
+            "description":"fireball against door",             
+            "direction": "null", 
+            "pattern": "pulseall", 
+            "position": 0, 
+            "time_transition": 0.5, 
+            "timestamp_center_start": 71.5, 
+            "wavespeed": 1.0
+        }, 
+        {
+            "color": [200, 25, 0],
+            "description":"explosion by Stoic",             
+            "direction": "null", 
+            "pattern": "pulseall", 
+            "position": 0, 
+            "time_transition": 0.5,
+            "timestamp_center_start": 126.0, 
+            "wavespeed": 1.0
+        }, 
+        {
+            "color": [0, 0, 0],
+            "description":"explosion by Stoic",             
+            "direction": "null", 
+            "pattern": "pulseall", 
+            "position": 0, 
+            "time_transition": 0.5,
+            "timestamp_center_start": 127.0, 
+            "wavespeed": 1.0
+        },
+        {
+            "color": [200, 100, 0],
+            "description":"big explosion (slo-mo)",             
+            "direction": "null", 
+            "pattern": "pulseall", 
+            "position": 0, 
+            "time_transition": 1.5,
+            "timestamp_center_start": 181.0, 
+            "wavespeed": 1.0
+        },
+        {
+            "color": [0, 0, 0],
+            "description":"big explosion (slo-mo)",             
+            "direction": "null", 
+            "pattern": "pulseall", 
+            "position": 0, 
+            "time_transition": 1,
+            "timestamp_center_start": 195.0, 
+            "wavespeed": 1.0
+        },
+        {
+            "color": [10, 100, 10],
+            "description":"zipple gas",             
+            "direction": "null", 
+            "pattern": "pulseall", 
+            "position": 0, 
+            "time_transition": 1,
+            "timestamp_center_start": 271.0, 
+            "wavespeed": 1.0
+        },
+        {
+            "color": [200, 100, 0],
+            "description":"zipple explosion",             
+            "direction": "null", 
+            "pattern": "pulseall", 
+            "position": 0, 
+            "time_transition": 0.5,
+            "timestamp_center_start": 272.5, 
+            "wavespeed": 1.0
+        },   
+        {
+            "color": [0, 0, 0],
+            "description":"zipple explosion ends",             
+            "direction": "null", 
+            "pattern": "pulseall", 
+            "position": 0, 
+            "time_transition": 0.5,
+            "timestamp_center_start": 273.5, 
+            "wavespeed": 1.0
+        }, 
+        {
+            "color": [125, 60, 0],
+            "description":"monstrous nightmare",             
+            "direction": "null", 
+            "pattern": "pulseall", 
+            "position": 0, 
+            "time_transition": 2,
+            "timestamp_center_start": 288.0, 
+            "wavespeed": 1.0
+        },
+        {
+            "color": [200, 100, 0],
+            "description":"monstrous nightmare",             
+            "direction": "null", 
+            "pattern": "pulseall", 
+            "position": 0, 
+            "time_transition": 0.5,
+            "timestamp_center_start": 291.0, 
+            "wavespeed": 1.0
+        },
+        {
+            "color": [0, 0, 0],
+            "description":"monstrous nightmare",             
+            "direction": "null", 
+            "pattern": "pulseall", 
+            "position": 0, 
+            "time_transition": 0.5,
+            "timestamp_center_start": 300.0, 
+            "wavespeed": 1.0
+        }, 
+        {
+            "color": [0, 0, 120],
+            "description":"blue explosion",             
+            "direction": "null", 
+            "pattern": "pulseall", 
+            "position": 0, 
+            "time_transition": 0.5,
+            "timestamp_center_start": 306.0, 
+            "wavespeed": 1.0
+        },
+        {
+            "color": [0, 0, 0],
+            "description":"blue explosion",             
+            "direction": "null", 
+            "pattern": "pulseall", 
+            "position": 0, 
+            "time_transition": 0.5,
+            "timestamp_center_start": 307.0, 
+            "wavespeed": 1.0
+        },
+        {
+            "color": [0, 0, 120],
+            "description":"second blue explosion",             
+            "direction": "null", 
+            "pattern": "pulseall", 
+            "position": 0, 
+            "time_transition": 0.5,
+            "timestamp_center_start": 315.0, 
+            "wavespeed": 1.0
+        },   
+        {
+            "color": [0, 0, 0],
+            "description":"second blue explosion",             
+            "direction": "null", 
+            "pattern": "pulseall", 
+            "position": 0, 
+            "time_transition": 0.5,
+            "timestamp_center_start": 315.6, 
+            "wavespeed": 1.0
+        },   
+        {
+            "color": [200, 100, 0],
+            "description":"hiding hiccup",             
+            "direction": "null", 
+            "pattern": "pulseall", 
+            "position": 0, 
+            "time_transition": 0.5,
+            "timestamp_center_start": 408.0, 
+            "wavespeed": 1.0
+        },
+        {
+            "color": [0, 0, 0],
+            "description":"hiding hiccup",             
+            "direction": "null", 
+            "pattern": "pulseall", 
+            "position": 0, 
+            "time_transition": 0.5,
+            "timestamp_center_start": 412.0, 
+            "wavespeed": 1.0
+        }                                                                                                                                         
+    ]
+}

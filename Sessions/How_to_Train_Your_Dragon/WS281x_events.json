@@ -1,0 +1,192 @@
+{
+    "device": "WS281x",
+    "controller":"ATMega328_I2C_to_Pixel",
+    "events": [
+        {
+            "color": [100,100,100], 
+            "description":"begin house lites up",
+            "direction": "null",
+            "pattern": "pulseall", 
+            "position": 0, 
+            "time_transition": 0.1, 
+            "timestamp_center_start": 0.1, 
+            "wavespeed": 1
+        }, 
+        {
+            "color": [1,1,1], 
+            "description":"moon wanes",
+            "direction": "null",
+            "pattern": "wavefromleft", 
+            "position": 0, 
+            "time_transition": 3.25, 
+            "timestamp_center_start": 3.5, 
+            "wavespeed": 1
+        },
+        {
+            "color": [50,50,50], 
+            "description":"clouds lighten scene",
+            "direction": "null", 
+            "pattern": "pulseall", 
+            "position": 0, 
+            "time_transition": 3, 
+            "timestamp_center_start": 13.0, 
+            "wavespeed": 1
+        },
+        {
+            "color": [1,1,1], 
+            "description":"scene darkens",
+            "direction": "null",  
+            "pattern": "pulseall", 
+            "position": 0, 
+            "time_transition": 2, 
+            "timestamp_center_start": 30.00, 
+            "wavespeed": 1
+        }, 
+        {
+            "color": [125,65,0], 
+            "description":"outdoor attack scene",
+            "direction": "null", 
+            "pattern": "pulseall", 
+            "position": 0, 
+            "time_transition": 1, 
+            "timestamp_center_start": 73.0, 
+            "wavespeed": 1.0
+        }, 
+        {
+            "color": [255,125,0],
+            "old_color": [200,100,0], 
+            "description":"fire across scene",
+            "direction": "null", 
+            "pattern": "frontcenterfanright", 
+            "position": 0, 
+            "time_transition": 0.5, 
+            "timestamp_center_start": 105.0, 
+            "wavespeed": 8
+        }, 
+        {
+            "color": [125,65,0], 
+            "description":"fire across scene ends",
+            "direction": "null", 
+            "pattern": "frontcenterfanright", 
+            "position": 0, 
+            "time_transition": 1, 
+            "timestamp_center_start": 105.75, 
+            "wavespeed": 8
+        }, 
+        {
+            "color": [80,65,0], 
+            "description":"smith shop",
+            "direction": "null", 
+            "pattern": "pulseall", 
+            "position": 0, 
+            "time_transition": 1.0, 
+            "timestamp_center_start": 137.0, 
+            "wavespeed": 1.0
+        },
+        {
+            "color": [255,125,0], 
+            "old_color": [200,100,0],
+            "description":"big explosion (slo-mo)",
+            "direction": "null", 
+            "pattern": "wavefromfront", 
+            "position": 0, 
+            "time_transition": 1, 
+            "timestamp_center_start": 181.0,  
+            "wavespeed": 4
+        }, 
+        {
+            "color": [125,65,0], 
+            "description":"big explosion (slo-mo) ends",
+            "direction": "null",  
+            "pattern": "wavefromfront", 
+            "position": 0, 
+            "time_transition": 1, 
+            "timestamp_center_start": 193, 
+            "wavespeed": 4
+        }, 
+        {
+            "color": [255,125,0],
+            "old_color": [200,100,0], 
+            "description":"zipple explosion",
+            "direction": "null",  
+            "pattern": "frontsonly", 
+            "position": 0, 
+            "time_transition": 0.5, 
+            "timestamp_center_start": 272.5,
+            "wavespeed": 1.0
+        }, 
+        {
+            "color": [125,65,0], 
+            "description":"zipple explosion ends",
+            "direction": "null",  
+            "pattern": "frontsonly", 
+            "position": 0, 
+            "time_transition": 0.5,
+            "timestamp_center_start": 273.0, 
+            "wavespeed": 1.0
+        }, 
+        {
+            "color": [255,125,0], 
+            "old_color": [200,100,0],
+            "description":"nadder spew",
+            "direction": "null",  
+            "pattern": "frontcenterandright", 
+            "position": 0, 
+            "time_transition": 0.5,
+            "timestamp_center_start": 346.0, 
+            "wavespeed": 1.0
+        }, 
+        {
+            "color": [125,65,0], 
+            "description":"nadder spew ends",
+            "direction": "null",  
+            "pattern": "frontcenterandright", 
+            "position": 0, 
+            "time_transition": 0.5,
+            "timestamp_center_start": 346.5, 
+            "wavespeed": 1.0
+        }, 
+        {
+            "color": [0,32,255],
+            "old_color": [0,8,127], 
+            "description":"blue explosion",
+            "direction": "null",  
+            "pattern": "wavefromfront", 
+            "position": 0, 
+            "time_transition": 0.25,
+            "timestamp_center_start": 377.5, 
+            "wavespeed": 5
+        },
+        {
+            "color": [125,65,0], 
+            "description":"blue explosion ends",
+            "direction": "null",  
+            "pattern": "wavefromfront", 
+            "position": 0, 
+            "time_transition": 0.25,
+            "timestamp_center_start": 378.5, 
+            "wavespeed": 5
+        },
+        {
+            "color": [255,125,0],
+            "old_color": [200,100,0], 
+            "description":"hiding hiccup",
+            "direction": "null",  
+            "pattern": "frontsonly", 
+            "position": 0, 
+            "time_transition": 0.5,
+            "timestamp_center_start": 408.0, 
+            "wavespeed": 1.0
+        },
+        {
+            "color": [125,65,0], 
+            "description":"hiding hiccup",
+            "direction": "null",  
+            "pattern": "frontsonly", 
+            "position": 0, 
+            "time_transition": 0.5,
+            "timestamp_center_start": 413.0, 
+            "wavespeed": 1.0
+        }          
+    ]
+}

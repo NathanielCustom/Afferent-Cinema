@@ -1,540 +1,567 @@
-# External Module Imports
-import RPi.GPIO as GPIO
-import time
-import smbus			# I2C Communication Ports
-import json				# Event and HW File Read/Write
-import os
-import re				# Regex for File Searching
-import sys
-import i2c_control		# I2C Communication Python Program
-import importlib		# Dynamic Module Importing
-from dejavu import Dejavu
-from dejavu.recognize import MicrophoneRecognizer
+# Module Imports
+import time                     # Matching Playback to CPU Time
 import threading
-from operator import itemgetter
+import re                       # Regex for File Searching
+import importlib                # Dynamic Module Importing
+import json
+from operator import itemgetter # For sorting events in event_file by 'timestamp_start' value
+import os
+import copy
 
-### Lists ###
+# Session
+folder_session = './Sessions/How_to_Train_Your_Dragon/'
+file_extension = '.py'
 
-## Loaded Files ##
-root_foldercontents = ' '.join(os.listdir('./'))						# Write all files in ./ as string
-pattern_regex = re.compile(r'\w+loaded\_files\.json')					
-file_lists = pattern_regex.findall(root_foldercontents)					# Generate a list from the string with regex value
+# Timestamps
+time_movie_start = time.time()
+time_dejavu = time.time()
 
+# Frequency Locking
+frequency_event_monitor = 0.02
+frequency_event_process = 0.02
 
-### Generate Directories ###
+# Buffers
+buffer_event_trigger = .02      # Creates a plus-or-minus window for when the event can trigger. If processing
+                                # is fast and always triggering in the minus window than we may want to consider
+                                # creating two separate variables for addressing the program's needs.
 
-# Flagged Events queued for Execution #TODO removal?
-flagged_events = {}	
-
-# PWM Controllers
-controller_addresses = []
-
-# Event Row - marks the current event to be processed
-eventMonitor = {}
-list_n = 0
-for file_dir in file_lists:
-	eventMonitor[list_n] = 0
-	list_n = list_n + 1
-
-## File Name Directories are coorelated with the given File Lists ##
-
-# Events File Names -
-events_filename = {}
-list_n = 0
-for file_dir in file_lists:
-	events_filename[list_n] = json.load(open(file_dir))["files"][0]["events"]
-	list_n = list_n + 1 
-
-
-# Hardware Type File Names-
-hwtype_programname = {}
-list_n = 0
-for file_dir in file_lists:
-	hwtype_programname[list_n] = json.load(open(file_dir))["files"][0]["hw_type"]
-	list_n = list_n + 1 
-
-
-# Hardware Profile File Names -
-hwprofile_filename = {}
-list_n = 0
-for file_dir in file_lists:
-	hwprofile_filename[list_n] = json.load(open(file_dir))["files"][0]["hwprofile"]
-	list_n = list_n + 1 
-
-
-# Pattern Profile File Names - 
-print ("Initialize Values - Search for Patterns")	# Print Progress Check
-sys.path.append('./Patterns')										# Import Pattern Folder Location to Python
-pattern_foldercontents = ' '.join(os.listdir('./Patterns'))			# Write all files in ./Patterns as string
-pattern_regex = re.compile(r'\w+\.pyc|(\w+)\.py')					# Filter all values to .pyc and .py extensions. Only .py file names are stored.
-pattern_filelist = pattern_regex.findall(pattern_foldercontents)	# Generate a list from the string with regex value
-
-# Remove "Empty" Values from Final Pattern List
-pattern_listtotal = len(pattern_filelist)
-for entry in xrange(pattern_listtotal, 0, -1):
-	if pattern_filelist[entry-1] == '':
-		del pattern_filelist[entry-1]
-
-
-# Pattern Name to Pattern File Dictionary
-pattern_dictionary = {}
-pattern_listtotal = len(pattern_filelist)
-for pattern_num in xrange(pattern_listtotal):
-	value = importlib.import_module(pattern_filelist[pattern_num]).pattern_name()
-	pattern_dictionary[value] = (pattern_filelist[pattern_num])			# Coorelates name of pattern found in Event to the name of the Pattern Module
-
-
-#### Calibrate / Initialize Values ####
-### Calibrate Event Files to Room Hardware Placement & Reset HW Profiles ###
-def values_initial():	
-	
-	global controller_addresses
-	
-	### Calculate Initial Values ###
-	eventMonitor = 0
-	for file_dir in file_lists:
-		
-		# Load Files
-		event_filename = json.load(open(file_dir))["files"][0]["events"]
-		event_file = json.load(open(event_filename))
-		hwprofile_filename = json.load(open(file_dir))["files"][0]["hwprofile"]	
-		hwprofile_file = json.load(open(hwprofile_filename))
-		
-		
-		
-	## Calculate Most Extreme Device Position ##
-		# For each Event and each Pattern File
-		events_total = len(event_file["events"])								# Get number of Events in Event List
-		for event in xrange(events_total):										# Calculate for each Event
-			if event_file["events"][event]["pattern"] in pattern_dictionary:
-				pattern_value = pattern_dictionary[(event_file["events"][event]["pattern"])]
-				importlib.import_module(pattern_value).position_analysis(hwprofile_file)			# Analysis Positional Values
-				importlib.import_module(pattern_value).leadup_calc(event_file, event)				# Execute Pattern Leadup Calculations
-			
-			# No Matching Pattern File Found - Default to Pulse All #
-			else:
-				importlib.import_module("pulse_all").leadup_calc(event_file, event)
-				
-
-		# Reset Positional Analysis
-		pattern_total = len(pattern_filelist)
-		for pattern_num in xrange(pattern_total):
-				importlib.import_module((pattern_filelist[pattern_num])).reset_analysis()
-				
-		# Sort Event List by ts_lead
-		sortedevents_list = sorted(event_file["events"], key=itemgetter('ts_lead'))
-		json.dump({"events":sortedevents_list}, open(event_filename, 'w'), sort_keys = True, indent = 4, ensure_ascii = False)
-		
-		
-	## Reset HW Previous Values ##		
-		# For each Device		
-		device_total = len(hwprofile_file["hw"])
-		for device in xrange(device_total):
-			#hwprofile_file["hw"][device]["value_previous"] = 0	# TODO, this isn't a global variable, how is this helpful? Plus, do we need the prev_val in the JSON file?
-		## Initialize Device Values ##
-			i2c_control.initialize_device(hwprofile_file["hw"][device]["address_i2c"], hwprofile_file["hw"][device]["channel_msb"], hwprofile_file["hw"][device]["channel_lsb"])
-			if hwprofile_file["hw"][device]["address_i2c"] not in controller_addresses:
-				controller_addresses.append( (hwprofile_file["hw"][device]["address_i2c"]) )
-		# Write Previous Values to Loaded JSON File
-		json.dump(hwprofile_file, open((json.load(open(file_dir))["files"][0]["hwprofile"]), 'w'), sort_keys = True, indent = 4, ensure_ascii = False)
-	
-	## Initialize Controllers #
-	i2c_control.initialize_controller(controller_addresses)
-	
-	return()
+# Threading Events
+start_event_monitor = threading.Event()
 
 
 
-### Buffers (define precision) ###
-bufferTime = 0.1											# minimum time to pass before allowing subsequent processing
-bufferTrigger = 0.1 										# min/max time frame that trigger can be fired, otherwise it is skipped
+###################################################################################################################################################
+#################################################### CLASSES ######################################################################################
+###################################################################################################################################################
+
+class EventMonitor(threading.Thread):
+    def __init__(self, event_list, hardware_device_list):
+        threading.Thread.__init__(self)
+        self.event_list = event_list
+        self.hardware_device_list = hardware_device_list
+        # Example: hardware_device_list = [ {"address":[1,2,3],...}, {"address":[4,5,6],...} ]
+        # Example: event_list = 
+        #    [ {"timestamp_start": 1.0,...}, {"timestamp_start": 23.3},... ]
+        
+    def run(self):
+        '''
+        Monitors the passed event_file for triggered events. The events should already have timestamp_start calculated and 
+        be in ascending order. First we synchronize to the next potential event, bypassing completed/passed events.
+        '''
+        global buffer_event_trigger
+        global frequency_event_monitor
 
 
-### Global Variables ###
-markertimestamp_movie = 0			# Place in movie Dejavu calculates to be present; Do not call directly; go through thread locking function
-cputimestamp_movie = time.time()	# CPU time for calculating current place; revalued when markertimestamp_movie is determined
+        ### Wait for Main Program ###
+        start_event_monitor.wait()
 
 
-### Main Operation Functions ###
-def movietime(marker, action):
-	lock = threading.Lock()		# Why must this be declared, why isn't threading.Lock().acquire() suitable?
-	lock.acquire()
-	
-	try:
-		global markertimestamp_movie
-		global cputimestamp_movie
-	
-		if action == 'store':
-			markertimestamp_movie = marker
-			cputimestamp_movie = time.time()
-			return ()
-	
-		if action == 'retrieve_marker':
-			return (markertimestamp_movie)
+        ### Find Next Valid Event ###
+        '''
+        FALSE statement implies that the event has not been passed and is available for processing.
+        TRUE statement implies that the event has been passed so the next event should be examined. 
+        '''
+        try:
+            event_index = 0 # Start at the first entry in event_file
+            while timestamp_movie_playback() > self.event_list[event_index]['timestamp_start'] + buffer_event_trigger :  # Cycle through events until timestamp_start + buffer trigger is less than the current time stamp
+                event_index = event_index + 1
+            ismonitored = True
+        except:
+            print ("EventMonitor: Thread " + str(threading.current_thread()) + " has no Events to monitor.")
+            ismonitored = False
 
-		if action == 'retrieve_cpu':
-			return (cputimestamp_movie)
+        ### Monitor Event ###
+        while ismonitored == True:
+            startloop = time.time()
+            ## Check Current Events for valid Trigger Time ##
+            try:
+                if timestamp_movie_playback() >= self.event_list[event_index]["timestamp_start"] - buffer_event_trigger:
+                    event = self.event_list[event_index]
+             
+                    ## Execute Event Thread ##
+                    EventProcess.daemon = True
+                    EventProcess(event, self.hardware_device_list, threading.current_thread()).start()
+                    event_index += 1   
 
-	finally:
-		lock.release()
-
-
-def calc_currenttimestamp():
-	timestamp = (time.time()- movietime(None, 'retrieve_cpu')) + movietime(None, 'retrieve_marker')
-	return (timestamp)
-	
-def counter(event_file, list_n):
-	while event_file["events"][eventMonitor[list_n]]["ts_lead"] + bufferTrigger < calc_currenttimestamp(): # Has the time for the Event to trigger passed?
-		eventMonitor[list_n] = eventMonitor[list_n] + 1													# Move Counter to next line
-	return()
-							
-
-def patternfunction(device_entry, event):
-
-	global pattern_dictionary
-
-	if 'p_assessed' not in event[device_entry]:						# Only needs to be run once since pattern values don't change.
-	## Event Transition ##
-		# Non-Transitioning Event #
-		if event[0]["t_transition"] <= 0:								# Includes values less than 0 result in an automatic 100%
-			t_transition = 0.01											# Can't divide later by a Zero
-		# Transitioning Event #
-		else:
-			t_transition = event[0]["t_transition"]
-		
-	## Device Delay ##	
-		if 'delay' in event[device_entry]:
-			delay = event[device_entry]["delay"]
-		else:
-			delay = 0
-		
-	## Pattern Assessment ##	
-		if event[0]["pattern"] in pattern_dictionary:
-			ts_position = importlib.import_module((pattern_dictionary[ (event[0]["pattern"]) ])).ts_calc(event[device_entry], event[0], delay)
-		else:
-			ts_position = event[0]["ts_center"]
-	
-	## Store Values ##
-		event[device_entry]['t_transition'] = t_transition
-		event[device_entry]['delay'] = delay
-		event[device_entry]['ts_position'] = ts_position
-		event[device_entry]['p_assessed'] = True
-	
-## Calculate Value Percent ##
-	value_percent = ( calc_currenttimestamp() - event[device_entry]['ts_position'] ) / event[device_entry]['t_transition']
-
-	#if value_percent <= 0:
-		#value_percent = 0
-		#event[device_entry]["update_value"] = True					# 'Flag' device for Previous Value update
-	if value_percent >= 1.00:											
-		value_percent = 1.00
-		event[device_entry]['complete'] = True						# 'Flag' device that it has completed its transition
-		## Test Output ##
-		#json.dump(flagged_events, open('flagged_devices_dump.json', 'w'), sort_keys = True, indent = 4, ensure_ascii = False) # dump check
-	
-	return(value_percent)
-	
-
-def scalingfunction(event):
-	
-	
-	loaded_commands	= {}	# Clear Dictionary of Commands to Pass to I2C
-	commands_entry = 0		# Reset where to start entering Commands
-	total_complete = 0		# Counts the number of complete devices
-			
-	# Determine HW Type
-	hwtype_name = event[0]["hwtype"]
-	
-	# Determine HW Profile
-	hwprofile_name = event[0]["hwprofile"]
-	hwprofile = json.load(open(hwprofile_name))
-	
-	## Assess each Device for Value ##
-	devices_total = len(event) - 1		# Get total number of flagged devices currently in row (-1, first row is Event)
-
-	for device_entry in xrange( 1, (devices_total + 1) ):				# Shift values for xrange
-		if 'complete' not in event[device_entry]:
-			
-			# Calculate pattern_percent in Pattern Function
-			pattern_percent = patternfunction( device_entry, event )	# Also sets flags for 'complete'
-			
-			# Get I2C and Channel addresses of device
-			address = event[device_entry]["address_i2c"]
-			ch_msb = event[device_entry]["channel_msb"]
-			ch_lsb = event[device_entry]["channel_lsb"]
-			value_previous = event[device_entry]["value_previous"]
-			
-			## Process Flags & Load Commands ##
-			
-			# 'Update Flag' Management
-			if "update_value" in event[device_entry] and pattern_percent > 0:
-				#value_previous = hwprofile["hw"][device]["value_previous"] 				# Write new value to variable, OLD (see below operations)
-				# Get value_previous from I2C
-				device_address = {}
-				device_address[0] = {"address":address, "msb":ch_msb, "lsb":ch_lsb}
-				value_previous = i2c_lock(device_address, 'receive')						# Not a separate thread because we need this before proceeding
-				event[device_entry]["value_previous"] = value_previous						# Write new value to flagged device
-				del event[device_entry]["update_value"]										# Delete Update 'Flag' Key
-			
-			## OLD, don't need? moved to pattern_function						
-			#elif pattern_percent <= 0:															# Device not ready to execute
-				#event[device_entry]["update_value"] = True									# 'Flag' device for Previous Value update
-						
-						
-			# Get new values
-			if pattern_percent > 0:					
-				values_event = importlib.import_module( hwtype_name ).processtrigger(pattern_percent, hwprofile_name, event[device_entry], event, value_previous)	
-				
-				# Load Commands to be sent over I2C
-				loaded_commands[commands_entry] = {"value":values_event[0], "address":address, "msb":ch_msb, "lsb":ch_lsb}
-				commands_entry += 1	
-						
-		else: # 'complete' in event[device_entry]
-			total_complete += 1
-			if total_complete == devices_total:
-				loaded_commands = False
-				return(loaded_commands)
-			else:
-				continue
-	return(loaded_commands)
+                else:
+                    '''
+                    Manages the amount of time spent on checking trigger conditions.
+                    Minimum amount of time between 'if' statement checks.
+                    Upon trigger in 'if' statement, no sleep is performed and next event_index is immediately checked.
+                    '''
+                    endloop = time.time()
+                    if  frequency_event_monitor - ( endloop - startloop ) > 0:
+                        time.sleep(frequency_event_monitor - (endloop - startloop))                                 
+            except IndexError:                                 # If exception raised, end the thread.
+                print ("EventMonitor: Thread " + str(threading.current_thread()) + " has reached end of file.")
+                ismonitored = False
 
 
-def eventsyc():
-	return()
-	# In each event file run through from the beginning of the list up to the current time.
-	# Write I2C values to a list overwriting "earlier" events with "later" events.
-	# When done processing events, pass list off to send commands over I2C.
-	
-	# start at event 0
-	# while event ts_lead < current time
-	# calc hw and value
-	# store in dictionary
+class EventProcess(threading.Thread):
+    def __init__(self, event, hardware_device_list, eventmonitor_thread_id):
+        threading.Thread.__init__(self)
+        self.event = event
+        self.hardware_device_list_monitor = hardware_device_list
+        # Example: hardware_device_list = [ {"address":[1,2,3],...}, {"address":[4,5,6],...} ]
+        self.monitor_id = eventmonitor_thread_id
+
+    def run(self):
+        global frequency_event_process
+
+        ### Display ###
+        print ("Event Queued: " + str(self.event["description"]))
+
+        
+        ### Variables ###
+        hardware_device_list_process = copy.deepcopy(self.hardware_device_list_monitor)
+        pattern_folder = which_pattern_folder(self.event)
+        devicelist_lock = threading.Lock()
 
 
-### New Functions and Classes ###
-	
-def i2c_lock(loaded_commands, action):
-	
-	# Manages the I2C traffic by locking threads out until released by previous thread #
-	
-	lock = threading.Lock()
-	lock.acquire()
-	
-	if action == 'send':
-		try:
-			for entry in xrange(len(loaded_commands)):
-				i2c_control.device_write( loaded_commands[entry]["value"], loaded_commands[entry]["address"], loaded_commands[entry]["msb"], loaded_commands[entry]["lsb"]  )
-
-		finally:
-			lock.release()
-			return (False)
-			
-	elif action == 'receive':
-		try:
-			for entry in xrange(len(loaded_commands)): # TODO, not multi entry ?
-				value_current = i2c_control.device_read( loaded_commands[entry]["address"], loaded_commands[entry]["msb"], loaded_commands[entry]["lsb"]  )
-				
-		
-		finally:
-			lock.release()
-			return (value_current)
-	
-class i2csender(threading.Thread):
-	# This non-daemon thread sends the commands through to i2c_lock to manage I2C traffic via thread locking #
-	def __init__(self, loaded_commands, action):
-		threading.Thread.__init__(self)
-		self.loaded_commands = loaded_commands
-		self.action = action
-	def run(self):
-		value_current = i2c_lock(self.loaded_commands, self.action)		# Do we ever request a value with this thread? If not, remove value_current
-		return (value_current)
-	
-class eventexecute(threading.Thread):	
-	def __init__(self, event):
-		threading.Thread.__init__(self)
-		self.event = event
-	def run(self):
-		frequency = .02													# .02 seconds = 50Hz
-		
-		while True:
-			startloop = time.time()
-			
-			loaded_commands = scalingfunction(self.event)				# Calculate value and return I2C commands
-			
-			if loaded_commands == False:								# All devices marked as 'complete'
-				break
-
-			else: 
-				# Start a non-daemon I2C thread (so that I2C can't be interrupted)
-				i2csender(loaded_commands, action = 'send').start()
-		
-			endloop = time.time()
-			
-			# Frequency
-			if frequency > (endloop - startloop ):
-				time.sleep( frequency - ( endloop - startloop ) )
-			
-		
-
-class eventmonitor(threading.Thread):
-	def __init__(self):
-		threading.Thread.__init__(self)
-	def run(self):
-		while True:
-			# TODO, frequency locking
-			
-			#try:
-			list_n = 0 # Start at the first entry (for eventMonitor)
-			
-			## Check Current Events for valid Trigger Time ##
-			for file_dir in file_lists:																# Read through each File List
-				event_file = json.load(open(events_filename[list_n]))								# Load Event File
-				
-				counter(event_file, list_n)															# Adjust Counter to soonest relevant Event
-				
-				if calc_currenttimestamp() >= event_file["events"][eventMonitor[list_n]]["ts_lead"] - bufferTrigger:
-					
-					## Store File Data ##
-					event = {}
-					event[0] = event_file["events"][eventMonitor[list_n]]
-					event[0]["hwtype"] = hwtype_programname[list_n]									# Add HW_Type to event[]
-					event[0]["hwprofile"] = hwprofile_filename[list_n]								# Add HW_Profile to event[]
-		
-					## Store Device Data ##		
-					device_entry = 1
-					for device in xrange(len(json.load(open(hwprofile_filename[list_n]))["hw"])):	# For each device in HW Profile													
-						
-						## Directional Limitations ##	---		#Future Usage for Directional Buffers
-						if ( "direction" in event[0] ) and ( "direction" in json.load(open(hwprofile_filename[list_n]))["hw"][device] ):	# 'direction' must be found in both documents
-							if json.load(open(hwprofile_filename[list_n]))["hw"][device]["direction"] == event[0]["direction"]:				# 'direction' is the same in both documents
-								event[device_entry] = {}
-								event[device_entry] = json.load(open(hwprofile_filename[list_n]))["hw"][device]								# Add Device to Dictionary
-							else:
-								continue								# Directional not compatable with event
-						elif "direction" not in event[0]:				# Non-Directional event
-							event[device_entry] = {}
-							event[device_entry] = json.load(open(hwprofile_filename[list_n]))["hw"][device]									# Add Device to Dictionary
-						else:	# TODO, is there a case where this is needed?
-							continue
-												
-						event[device_entry]['update_value'] = True
-						print "updated an entry"
-						device_entry += 1
-				
-					## Test Output ##
-					json.dump(event, open('event_dump.json', 'w'), sort_keys = True, indent = 4, ensure_ascii = False)		
-					
-					## Execute Event Thread
-					eventexecute.daemon = True
-					eventexecute(event).start()
-					
-					eventMonitor[list_n] = eventMonitor[list_n] + 1									# Move Counter to next line
-
-						
-				list_n = list_n + 1																	# Tick to check next File List
-				## TODO, do we need a wait in here to set frequency?
-			#except:
-				#print "eventmonitor thread error"
+        ### Remove Devices not Triggered by Pattern ###
+        hw_isincluded_list = []
+        for device in hardware_device_list_process:
+            isincluded = importlib.import_module(pattern_folder).device_inclusion(device)
+            if isincluded == True:
+                hw_isincluded_list.append(hardware_device_list_process[hardware_device_list_process.index(device)])                
+        hardware_device_list_process = hw_isincluded_list             # Copy Over New List
 
 
-def keyboardescape():
-	#bus = smbus.SMBus(1)
-	#bus.write_byte_data(0x40, 0x00, 0x10)
-	global controller_addresses
-	## Turn off all PWM boards ##
-	loaded_commands = {}
-	for entry in xrange(len(controller_addresses)): #TODO rename source
-		loaded_commands[entry] = {}
-		loaded_commands[entry]["value"] = 0x40
-		loaded_commands[entry]["address"] = controller_addresses[entry]
-		loaded_commands[entry]["msb"] = 0x00
-		loaded_commands[entry]["lsb"] = 0x10
-
-	i2csender(loaded_commands, 'send').start()
+        ### Process Devices for Trigger Time & Send Commands ###
+        while True:
+            startloop = time.time()
+            
+            #try:
+            for device in hardware_device_list_process:
+                # Example: hardware_device_list_process = [ {"address":[1,2,3],...}, {"address":[4,5,6],...} ]
+                # Example: device = 
+                #   {"address":[1,2,3], "controller":"PCA9685", "x_position":0, "values":[120, 46, 34], I2C_address":68}
 
 
+                ## Build values List ##
 
-class synctime(threading.Thread):
-	def __init__(self):
-		threading.Thread.__init__(self)
-	def run(self):
-		with open("dejavu.cnf") as f:
-			config = json.load(f)
-			
-		id_specific = None
-		starteventmonitor = True
-		djv = Dejavu(config)											#Bypassed DB cataloging in __init__ component
-		secs = 5														# Initial sample length to identify media
-		while True:
-			try:	
-				while True:
-					calctime_start = time.time()						# Processing Time Compensation (1/2)
-		
-					# Reduce sample length once track ID'd
-					if id_specific != None:
-						secs = 3
-						if starteventmonitor == True:
-							eventmonitor.daemon = True
-							eventmonitor().start()						# Starts eventmonitor now that track is identified
-							starteventmonitor = False
-							
-					song = djv.recognize(MicrophoneRecognizer, id_specific, seconds=secs)
-					
-					if song is None:
-						print "Nothing recognized -- did you play the song out loud so your mic could hear it? :)"
-					else:
-						print "From mic with %d seconds we recognized: %s\n" % (secs, song)
-					
-					calctime_end = time.time()							# Processing Time Compensation (2/2)
-					
-					## ID stored if confident enough and not already identified
-					if ( song['confidence'] > 10 ) and id_specific == None:
-						id_specific = song['song_id']
-					
-					print "check offset seconds" #print check
-					print song["offset_seconds"] #print check
-					print calctime_end-calctime_start #print check
-					
-					## Recalculate Current Marker Time
-					if song['confidence'] > 15:
-						movietime(( (calctime_end-calctime_start) + song["offset_seconds"] ), 'store')
-						print "Marker Time adjusted to %s" % movietime( None, 'retrieve_marker' )
-					else:
-						print "Not enough Confidence" #print check
-						print "Current time is %s" % calc_currenttimestamp()
-	
-			except:
-				print "synctime thread error"			
+                # Calculate value_percent based on current time and pattern
+                timestamp_position = importlib.import_module(pattern_folder).timestamp_position(device, self.event)
+                value_percent = ( timestamp_movie_playback() - timestamp_position ) / self.event["time_transition"]
 
-### Main Body ###
-# Initialize #
-values_initial()
 
+                ## Legal value check ##
+                if value_percent >= 1.00:                                            
+                    value_percent = 1.00                                                        # Transition Complete...
+                    del hardware_device_list_process[hardware_device_list_process.index(device)]      # Remove completed Device from hardware_device_list_process (EventProcess instance).                  
+                if value_percent < 0:
+                    value_percent = 0
+                
+
+                ## Send values to controller ##
+                if value_percent != 0:            # Otherwise, queued events where particular device is not triggered yet will interfere with 'Zero' commands
+                    # Apply value_percent to target value (defined in event) as a 'step'.
+                    values = importlib.import_module(device["device_driver"]).values_step(device, self.event, value_percent, folder_session)
+                        # Example: values = [230, 45, 0]
+
+
+                    '''
+                    Error Fixing: It is beyond me why as soon as list "values" is sent to "controller_driver".main() it
+                    loses its values and becomes and empty list. To correct, I have made a deep copy before the function.
+                    '''
+                    values_to_driver = copy.deepcopy(values)    # values list losing values when sending so making a deep copy before sending.
+                    importlib.import_module(device["controller_driver"]).main(device, values_to_driver)
+
+                
+                ## Update 'Master' Hardware List ##
+                '''
+                Writes values to EventMonitor ("master") instance of hardware_device_list[_monitor]
+                '''
+                if value_percent == 1.00:
+                    # Start thread to update instance of device list
+                    UpdateDeviceList.daemon = True
+                    UpdateDeviceList(device, values, self.monitor_id, devicelist_lock).start()
+
+            ## Manage the amount of time spent on calculating values ##
+            endloop = time.time()
+            if  frequency_event_process - ( endloop - startloop ) > 0:
+                time.sleep( frequency_event_process - (endloop - startloop) )
+
+        return()
+
+
+class UpdateDeviceList(threading.Thread):
+    def __init__(self, device, values, monitor_id, devicelist_lock):
+        threading.Thread.__init__(self)
+        self.device = device
+        self.values = values
+        self.monitor_id = monitor_id
+        self.devicelist_lock = devicelist_lock
+
+    def run(self):
+        #process values
+        self.devicelist_lock.acquire()
+
+        ### Find Match ###
+        '''
+        Itterates through all devices in Event Monitor's hardware list looking for a match
+        against the passed 'device' to be updated. The 'I2C_address' and 'address' keys qualify
+        if a match is found. When a match is found the passed values are written to the hardware
+        list as 'values'.
+        Future implementation of multiplexors can add an additional 'if' statement before the
+        'I2C_address' check.
+        '''
+        
+        
+        # Error Fixing #
+        '''
+        Error Fixing: It is beyond me why as soon as any equation is executed self.values loses
+        its value and becomes and empty list. To correct, I have made a deep copy
+        before any equation.
+        '''
+        values_copy = copy.deepcopy(self.values)
+        
+        #print ("UPDATE VALUES THREAD")
+        thread_device_list = self.monitor_id.hardware_device_list     
+        for device in self.monitor_id.hardware_device_list:
+            if thread_device_list[thread_device_list.index(device)]["I2C_address"] == self.device["I2C_address"]:
+                if thread_device_list[thread_device_list.index(device)]["address"] == self.device["address"]:
+                    self.monitor_id.hardware_device_list[thread_device_list.index(device)]["values"] = values_copy
+                    #print ("UPDATED VALUES to: " + str(values_copy) + " for " + str(self.device["I2C_address"]) + ": " + str(self.device["address"]))
+
+        self.devicelist_lock.release()
+
+
+###################################################################################################################################################
+################################################### FUNCTIONS #####################################################################################
+###################################################################################################################################################
+
+def initialize_hardware(hardware_directory):
+    '''
+    Imports the controller drivers for each type listed in the hardware_directory.
+    Then passes the controller dictionary to the associated driver for initializing the hardware itself.
+    '''
+    controller_list = []
+
+    for controller in hardware_directory:
+        # Example: controller = 40 -or- 68
+        # Example: hardware_directory[controller] =
+        #   {'address': 40, 'device_group': {'00':{'address':[1,2,3,4],...}, '01':{'address':[5,6,7,8],...},... }
+
+        if hardware_directory[controller]["controller"] not in controller_list:
+        # Import Controller Driver
+            controller_list.append(hardware_directory[controller]["controller"])
+            # is this necessary? does it help?
+            try:
+                importlib.import_module(hardware_directory[controller]["controller_driver"])
+            except:
+                print ("initialize_hardware: error")
+
+        # Intialize Controller
+        importlib.import_module(hardware_directory[controller]["controller_driver"]).initialize(hardware_directory[controller])
+    return ()
+
+
+def keyboardescape(hardware_directory):
+    #TODO Kill all threads so they are not trying to execute commands while shutting down.
+
+    for controller in hardware_directory:
+        # Example: controller = 40 -or- 68
+        if "null" not in hardware_directory[controller]:
+            importlib.import_module(hardware_directory[controller]["controller_driver"]).shutdown(hardware_directory[controller])
+                # Example: hardware_directory[controller] =
+                #   {'address': 40, 'device_group': {'00':{'address':[1,2,3,4],...}, '01':{'address':[5,6,7,8],...},... }
+    return()
+
+
+def load_system():
+    """
+    After initializing the system, the main thread builds a hardware list for each event file,
+    starts a thread per event file, and monitors triggering times.
+    A new thread is created and passes on the event for the value to be calculated at regular 
+    intervals. The calculated value is then passed onto the proper driver where it is constructed
+    into a format that the receiving controller can understand.
+    """
+
+    ############ Build Events List ##############
+    ''' 
+
+    '''
+    session_foldercontents = ' '.join( os.listdir(folder_session) )                # Write all files in ./Sessions/Despicable_Me as string session_foldercontents
+    pattern_regex = re.compile(r'\w+\_events\.json')
+    session_folder_events = pattern_regex.findall(session_foldercontents)       # Generate a list from the string with regex value
+
+
+    ######## Import & Calibrate Files ########
+    '''
+    Each event file, in the selected session folder, will be monitored by a thread.
+    Prior to starting the thread a "quick reference" list of applicable hardware is built.
+    The list reduces the amount of scanning each thread will have to do later when applying event triggers.
+
+    Future will provide means of selecting the folder or a permanent "active" directory
+    '''
+    hardware_directory = json.load(open('./Hardware/hardware_directory.json'))                  # Open hardware_directory.json
+    initialize_hardware(hardware_directory)                                                     # Initialize Hardware
+    
+
+    for event_file_name in session_folder_events:                                               # For each event file name listed and ...                                                 
+        event_file = json.load(open(folder_session + event_file_name))                          # open the event_file.
+  
+        hardware_device_list = []
+        
+        # Preprocess Files
+        hardware_device_list = preprocess_hardware_device_list(hardware_directory, event_file)  # Append additional devices that match to list.
+            # Example: hardware_device_list = [ {"address":[1,2,3],...}, {"address":[4,5,6],...} ] 
+
+        event_file = preprocess_patterns(event_file, hardware_device_list)         # Which patterns and at what timestamp?
+        event_list = preprocess_events(event_file)
+            # Example: event_list = 
+            #    [ {"timestamp_start": 1.0,...}, {"timestamp_start": 23.3},... ]
+            
+        # Start Event Monitoring Thread
+        EventMonitor.daemon = True
+        EventMonitor(event_list, hardware_device_list).start()
+    
+    return(hardware_directory)
+   
+
+def preprocess_events(event_file):
+    '''
+    Sort Event List by timestamp_start
+    '''
+    event_list = sorted(event_file["events"], key=itemgetter('timestamp_start'))
+    return (event_list)
+
+
+def preprocess_hardware_device_list(hardware_directory, event_file):
+    '''
+    Finds matching devices in hardware_directory as defined by passed event_file. Matches are
+    put into hardware_device_list list which will be unique to each event monitoring thread.
+    '''
+    hardware_device_list = []
+
+    for controller in hardware_directory:                                                          # For each key (I2C Address) in the top level of hardware_directory...
+            # Example: controller = 40
+            # Example: hardware_directory[controller] =  
+            #   { 'address':40, 'controller':'PCA9685'...'device_group':{ "40":{...}},{"68":{...} } }   
+        if hardware_directory[controller]["controller"] == event_file["controller"]:                                   # and the controller value matches the controller value in the event file...
+        
+            # Build Hardware List
+            for device_group in hardware_directory[controller]["device_group"]:                                        # then check each device group...
+                # Example: device_group = 00 -or- 01 -or- 02...
+                # Example: hardware_directory[controller]["device_group"] =  
+                #   "device_group":{ "40":{...}},{"68":{...} } }
+                # Example: hardware_directory[controller]["device_group"][device_group] =  
+                #   "40":{'address': [3,4,5], 'device':'LED_RGB,...}
+
+                if hardware_directory[controller]["device_group"][device_group]["device"] == event_file["device"]:     # if the device value ("device type") is the same... 
+                    device_group_list = hardware_directory[controller]["device_group"][device_group]                   # Create a temporary list with the dictionary
+                        # Example: device_group_list = {"address":[1,2,3"], "x_position":0,...}
+                    device_group_list["I2C_address"] = hardware_directory[controller]["address"]                       # Add the I2C_address to the dictionary,
+                    device_group_list["controller_driver"] = hardware_directory[controller]["controller_driver"]       # add controller driver to the dictionary,
+                    hardware_device_list.append(device_group_list)                                                     # and add it to the hardware_device_list
+                        # Example: hardware_device_list = [ {"address":[1,2,3],...}, {"address":[4,5,6],...} ]    
+    return (hardware_device_list)
+
+
+def preprocess_patterns(event_file, hardware_device_list):
+    '''
+    Process after hardware_device_list has been built for the current event file.
+    Import all required Patterns files, then determine timestamp based on installed hardware (most extreme positions).
+    Add 'extreme' adjusted time stamp to event as timestamp_start for later usage.
+    '''
+    # Example: hardware_device_list = [ {"address":[1,2,3],...}, {"address":[4,5,6],...} ] 
+    global folder_session
+    pattern_list = []
+
+    for event in event_file["events"]:        
+        '''
+        core_pattern_library = ('Patterns.' + event["pattern"])
+        session_pattern_library = (folder_session + '.Patterns.' + event["pattern"])
+        '''
+        pattern_folder = which_pattern_folder(event)
+        event_path = event_file["events"][event_file["events"].index(event)]
+
+        ## Folder Check ##
+        '''
+        Prioritize like-named patterns in the session folder over the core (Patterns) folder.
+        '''
+        '''
+        if os.session_pattern_library.isfile:
+            pattern_folder = session_pattern_library 
+        else:
+            pattern_folder = core_pattern_library  
+        '''
+
+        ## Process pattern file once for extremes ##
+        if event_path["pattern"] not in pattern_list:
+            pattern_list.append(event_path["pattern"])
+            position_extreme, delay_extreme = importlib.import_module(pattern_folder).positional_extremes(event_path, hardware_device_list)
+
+        ## Timestamp Leadup Calc ##
+        timestamp_calibrated = importlib.import_module(pattern_folder).timestamp_leadup(event_path, hardware_device_list, position_extreme, delay_extreme)
+        event_file["events"][event_file["events"].index(event)]["timestamp_start"] = timestamp_calibrated
+
+        ## OLD ##
+        '''
+        library = ('Patterns.' + event["pattern"])
+        event_path = event_file["events"][event_file["events"].index(event)]
+
+        # Process pattern file once for extremes.
+        if event_path["pattern"] not in pattern_list:
+            pattern_list.append(event_path["pattern"])
+            position_extreme, delay_extreme = importlib.import_module(library).positional_extremes(event_path, hardware_device_list)
+        timestamp_calibrated = importlib.import_module(library).timestamp_leadup(event_path, hardware_device_list, position_extreme, delay_extreme)
+        event_file["events"][event_file["events"].index(event)]["timestamp_start"] = timestamp_calibrated
+            #except:
+            #    print ("ERROR - preprocess_patterns: Process pattern file once for extremes.")
+        '''    
+    return (event_file)
+
+
+def select_mode():
+    global time_movie_start
+    
+    ### Select Playback Mode ###
+    print ("\n\n\n####### MODE SELECTION #######")
+    while True:
+        print ("\n\nInput Mode: \n 1. Offset Time \n 2. Dejavu Time\n")
+        selection = int(input(""))
+        
+        # Offset #
+        if selection == 1:
+            time_playback_offset = int(input("Input current movie time.\n"))
+            time_movie_start = time.time() - time_playback_offset
+            break
+
+        # Dejavu #
+        elif selection == 2:
+            print ("\nFuture - Re-add Dejavu\n")
+            continue
+            #synctime.daemon = True
+            #synctime().start()
+            #mode = False
+        
+        else:
+            print ("\nInvalid Input\n")
+            continue
+    
+    return()        
+    
+
+def select_session():
+    global folder_session
+ 
+    ### Load Config File ###
+    while True:
+        try:
+            config = json.load(open('./config.json'))			
+            current_session_folder = config["session_folder_current"]
+            break
+        except KeyError:
+            config["session_folder_current"] = ""
+            json.dump(config, open('./config.json', 'w'), indent=4, ensure_ascii=False)
+            #current_session_folder = config["session_folder_current"]
+        except FileNotFoundError:
+            json.dump({}, open('./config.json', 'w'), indent=4, ensure_ascii=False)
+    
+    
+    ### Select Session Folder ###
+    print ("\n####### FOLDER SELECTION #######")
+    while True:
+        print ("\nCurrent Session Folder: " + str(current_session_folder))
+        print ("(K)eep or (S)elect new folder?")
+        selection = input("")
+        if selection == 'K':
+            if os.path.isdir(current_session_folder):                
+                break
+            else:
+                print ("\nNot a valid folder. Please (S)elect a new folder.")    
+        elif selection == 'S': 
+            contents = os.listdir("./Sessions/")
+            while True:
+                print ("\nInput new folder from options below:")
+                for item in contents:
+                    if os.path.isdir("./Sessions/" + str(item)):
+                        print (item)
+                print ("")
+                folder = ("./Sessions/" + input(""))
+                if os.path.isdir(folder):
+                    current_session_folder = folder
+                    config["session_folder_current"] = folder
+                    json.dump(config, open('./config.json', 'w'), indent=4, ensure_ascii=False)
+                    print ("\nFolder " + str(folder) + " loaded.\n")
+                    break
+                else:
+                    print ("\nINVALID INPUT... Try Again.")              
+        else:
+            print ("\nInvalid Selection\n")
+    
+    return()
+
+
+def timestamp_movie_playback():
+    '''
+    Calculates the current movie playback time based on the current CPU time.
+    '''
+    global time_movie_start
+    timestamp = time.time() - time_movie_start
+    return (timestamp)
+
+
+def values_unchanged_check(values_stored, values): 
+    '''
+    Determine if the calculated value has changed since last assessed.
+    '''
+    # Example: values = [230, 45, 0]
+
+    value_count = len(values)
+    value_index = 0
+    for value in values:
+        try:
+            if value == values_stored[value_index]:
+                continue
+            else:
+                result = False      # One or more Values is different and needs to be updated.
+                break
+            result = True           # All matches, Values are the same as previously.
+        except:
+            #error log
+            print ("values_unchanged_check(): 'values_stored' and 'values' not same length")
+    return (result)
+
+
+def which_pattern_folder(event):
+    '''
+    Determines which folder the called pattern from the event is located.
+    Prioritize like-named patterns in the session folder over the core (Patterns) folder.
+    '''
+    global folder_session
+    global file_extension    
+
+
+    session_pattern_library = (folder_session + 'Patterns/' + event["pattern"] + file_extension)
+ 
+    if os.path.isfile(session_pattern_library):
+        pattern_folder = ((folder_session + 'Patterns.' + event["pattern"]).replace('/', '.'))[2:] # Converts to absolute path and removes 
+    else:
+        pattern_folder = ('Patterns.' + event["pattern"])
+    
+    return (pattern_folder)      
+
+
+
+###################################################################################################################################################
+################################################# MAIN PROGRAM ####################################################################################
+###################################################################################################################################################
 
 try:
-	mode = True
-	while mode:
-		print "Input Mode: \n 1. Offset Time \n 2. Dejavu Time"
-		selection = input("")
-		
-		if selection == 1:
-			markertime_offset = input("Input movie start time marker (seconds) ")
-			markertime_movie = time.time() - markertime_offset
-			eventmonitor.daemon = True
-			eventmonitor().start()
-			mode = False
-	
-		elif selection == 2:
-			synctime.daemon = True
-			synctime().start()
-			mode = False
-	
-		else:
-			""
-	
-	# Keep main thread alive to monitor for exit (keyboardinterrupt)
-	while True:
-		time.sleep(20) # pass would cause Dejavu to fail with IOError Overflow, value is arbitrary
-		
+    ### Load File and Calibrate ###
+    select_session()
+    hardware_directory = load_system()
+    
+    ### Select Mode and Begin Monitoring ###
+    select_mode()
+    start_event_monitor.set()    
+
+    ### Keep Main Thread Alive ###
+    while True:
+        time.sleep(3) # Pass would cause Dejavu to fail with IOError Overflow, value is arbitrary
+       
 except KeyboardInterrupt:
-	keyboardescape()
+    keyboardescape(hardware_directory)
