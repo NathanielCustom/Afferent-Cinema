@@ -18,7 +18,19 @@ Raspberry Pi 3 with Raspbian
 
 I2C over GPIO Enabled (see Interfaces/I2C.py)
 
-## Working with Events
+# System Explanation
+## Introduction
+The heart of the Afferent Cinema solution is the mini-computer, Raspberry Pi (RPi). Its low price tag (~$35-$40 USD) and feature rich design makes it a suitable choice for running Afferent Cinema.
+
+The RPi provides a number of GPIO (general-purpose input/output) pins that enable the user to interact in a variety of ways with connected devices. Afferent Cinema’s included I2C drivers is the backbone of communication between the RPi and other I2C slaves. Future revisions may include additional drivers to support other communication protocols like SPI and DMX512.
+
+The RPi also serves as the main microprocessor responsible for monitoring and executing events. Before diving into configuring Afferent Cinema there are a number of concepts that should be understood:
+- Events
+- Positional Coordinates
+- Hardware Profile
+
+
+### Events
 An event is the occurrence of a special effect. Technically, an event is a single change in output.
 
 ![Light Switch to On](Documentation/Readme/fadeup.png?raw=true "Event - Light On")
@@ -43,7 +55,7 @@ The ‘pattern’ key defines a python file that is used to calculate in what ma
 
 The ‘wavespeed’ key sets the speed in which the ‘pattern’ is executed. The speed is measured in meters per second. One meter per second is approximately one chair (seating position) per second. Not all patterns will utilize the ‘wavespeed’ key. This will be explained in more detail in later sections.
 
-## Position Coordinates
+### Positional Coordinates
 
 The degree of freedom to which devices can be installed in a playback environment is almost limitless. To translate from an infinite number of positions in our playback environment to a finite scale that a computer can understand we imagine a Battleship-style, two-dimensional grid overlaying the space with our screen device (TV, projected image, laptop) in cell/square (0, 0).
 
