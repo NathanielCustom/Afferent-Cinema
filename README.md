@@ -22,7 +22,7 @@ I2C over GPIO Enabled (see Interfaces/I2C.py)
 ## Introduction
 The heart of the Afferent Cinema solution is the mini-computer, Raspberry Pi (RPi). Its low price tag (~$35-$40 USD) and feature rich design makes it a suitable choice for running Afferent Cinema.
 
-The RPi provides a number of GPIO (general-purpose input/output) pins that enable the user to interact in a variety of ways with connected devices. Afferent Cinema’s included I2C drivers is the backbone of communication between the RPi and other I2C slaves. Future revisions may include additional drivers to support other communication protocols like SPI and DMX512.
+The RPi provides a number of GPIO (general-purpose input/output) pins that enable the user to interact in a variety of ways with connected devices (a.k.a. sensory feedback devices or sensory devices). Afferent Cinema’s included I2C drivers is the backbone of communication between the RPi and I2C-slave, sensory devices. Future revisions may include additional drivers to support other communication protocols like SPI and DMX512.
 
 The RPi also serves as the main microprocessor responsible for monitoring and executing events. Before diving into configuring Afferent Cinema there are a number of concepts that should be understood:
 - Events
