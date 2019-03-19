@@ -43,6 +43,23 @@ The ‘pattern’ key defines a python file that is used to calculate in what ma
 
 The ‘wavespeed’ key sets the speed in which the ‘pattern’ is executed. The speed is measured in meters per second. One meter per second is approximately one chair (seating position) per second. Not all patterns will utilize the ‘wavespeed’ key. This will be explained in more detail in later sections.
 
+## Position Coordinates
+
+The degree of freedom to which devices can be installed in a playback environment is almost limitless. To translate from an infinite number of positions in our playback environment to a finite scale that a computer can understand we imagine a Battleship-style, two-dimensional grid overlaying the space with our screen device (TV, projected image, laptop) in cell/square (0, 0).
+
+![Room with Grid Overlay](Documentation/Readme/gridroom.png?raw=true "Coordinates - Room Grid")
+
+Each cell is approximately 1m x 1m or about the size of a single seating position.
+
+![1-Meter Measurements on Grid](Documentation/Readme/gridsize.png?raw=true "Coordinates - Grid Size")
+
+The cells are numbered on both the ‘X’ and ‘Y’ axis as pictured.
+
+![Grid with X/Y Labeled](Documentation/Readme/gridroom_screen.png?raw=true "Coordinates - Grid X/Y")
+
+In the following example setup the TV is at (0, 0), the single-recliner is at (0, -3), the lamp is at (-2, -4), and the subwoofer is at (2, 1).
+
+![Example Devices in Grid](Documentation/Readme/gridroom_numbered.png?raw=true "Coordinates - Example Devices")
 
 
 ## Working with Drivers
