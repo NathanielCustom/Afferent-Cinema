@@ -9,14 +9,34 @@ af·fer·ent
 Afferent Cinema follows a schedule of timed events to trigger in coorelation with on screen action. Triggered events send applicable commands over I2C where the intended receiving device actuates as instructed.
 
 
-## Getting Started
+# Getting Started
 
-To Be Completed.
+The lofty vision of Afferent Cinema is to design a solution where an end user, with basic technical knowledge, can connect all hardware and enjoy a 4D cinematic experience with minimal, manual configuration.
 
+- Automatic synchronization to media
+- Modular hardware connectivity
+- Device calibration standards
+- Automatic and manual retrieval of compatible drivers and events
 
-Raspberry Pi 3 with Raspbian
+We are a long way from implementing all those features.
 
-I2C over GPIO Enabled (see Interfaces/I2C.py)
+However, a procedure for 'automatic syncronization to media' is close at hand. There are a few more hurdles to overcome, just no timetable on their completion. So for now, enjoy the Standard Install.
+
+### Standard Afferent-Cinema Install
+
+1. Raspberry Pi 3 with Raspbian
+2. Enable I2C over GPIOs --- as outlined in /boot/overlays/README section i2c-gpio. Avoid using the hardware I2C pins (3 & 5) as the Broadcomm BCM2835 chipset has an [inherent bug with clock stretching](http://www.advamation.com/knowhow/raspberrypi/rpi-i2c-bug.html).
+>- Terminal: sudo nano /boot/config.txt
+>- Add: dtoverlay=i2c-gpio,i2c_gpio_sda=5,i2c_gpio_scl=6
+>- This will add a new bus /dev/i2c-3 to Broadcom pins GPIO5 & GPIO6 (RPi / breakout-board pins 29 & 31 respectively)
+3. Install 2.2k pullup resistor on the I2C SDA and SCL lines.
+>- One resistor from 5V+ to GPIO5 and another from 5V+ to GPIO6
+4. Download the repository.
+
+### Dejavu Afferent-Cinema Install
+Coming "Valve Time"
+
+See https://github.com/worldveil/dejavu for more details on Dejavu.
 
 # System Explanation
 ## Introduction
