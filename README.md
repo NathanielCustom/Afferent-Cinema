@@ -144,4 +144,4 @@ ATMega328 -> WS2812B
 
 ## Future Changes/Additions
 * Documentation on creating events files and drivers
-* Incorporation of Dejavu for automatic syncronization of RPi to playback media.
+* Provide Documentation on Installing/Configuring Audio Recognition
