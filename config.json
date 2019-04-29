@@ -1,3 +1,7 @@
 {
-    "session_folder_current": "./Sessions/How_to_Train_Your_Dragon"
+    "session_folder_current": "./Sessions/How_to_Train_Your_Dragon",
+    "database_username": "user",
+    "database_password": "pass",
+    "database_address": "localhost",
+    "database_name": "dejavu"
 }

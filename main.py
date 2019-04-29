@@ -7,6 +7,8 @@ import json
 from operator import itemgetter # For sorting events in event_file by 'timestamp_start' value
 import os
 import copy
+from Audio_Recognition.dejavu import Dejavu
+from Audio_Recognition.dejavu.recognize import MicrophoneRecognizer
 
 # Session
 folder_session = './Sessions/How_to_Train_Your_Dragon/'
@@ -14,7 +16,6 @@ file_extension = '.py'
 
 # Timestamps
 time_movie_start = time.time()
-time_dejavu = time.time()
 
 # Frequency Locking
 frequency_event_monitor = 0.02
@@ -26,13 +27,105 @@ buffer_event_trigger = .02      # Creates a plus-or-minus window for when the ev
                                 # creating two separate variables for addressing the program's needs.
 
 # Threading Events
-start_event_monitor = threading.Event()
+start_monitoring = threading.Event()
+audiosync_setup_complete = threading.Event()
 
 
 
 ###################################################################################################################################################
 #################################################### CLASSES ######################################################################################
 ###################################################################################################################################################
+
+class AudioSync(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+
+
+    def run(self):
+        global time_movie_start
+
+        ############ Initialize Audio Recognition ##############
+        ## Access Dejavu Database ##
+        config_path = os.path.abspath(os.path.join("config.json"))
+        config = json.load(open(config_path))
+        database_query = (
+                            "mysql+mysqlconnector://"
+                            + str(config["database_username"])
+                            + ":"
+                            + str(config["database_password"])
+                            + "@"\
+                        + str(config["database_address"])
+                            + "/"\
+                            + str(config["database_name"])
+                        )    
+        dburl = os.getenv('DATABASE_URL', database_query)
+        djv = Dejavu(dburl=dburl)
+
+        
+        ## Run Through Audio Related Warnings and Clear Screen ##
+        void = djv.recognize(MicrophoneRecognizer, 0.01)    
+        #os.system('clear')
+
+
+        ### Flag Intialization Complete and Wait for Main Program ###
+        audiosync_setup_complete.set()
+        start_monitoring.wait()
+
+
+        ############ Audio Recognition##############  
+        sample_length = 3                                                # Initial sample length to identify media
+        reset_length = 5                                                # Amount of time (seconds) changed before resetting hardware.
+        id_specific = None
+
+        while True:
+            try:    
+                processing_time_start = time.time()                        # Processing Time Compensation (1/2)
+
+                # Reduce sample length once track ID'd
+                if id_specific != None:
+                    sample_length = 2
+
+                try:    
+                    movie = djv.recognize(MicrophoneRecognizer, seconds=sample_length)
+                except:
+                    print ("Dejavu Failed... starting again")
+
+                processing_time = time.time() - processing_time_start   # Processing Time Compensation (2/2)
+    
+
+                if movie is None:
+                    print ("\nNothing recognized -- verify audio and microphone settings.\n")
+                else:
+                    print ("\n%s recognized from sample with confidence %s.\n" % (movie['song_name'], str(movie["confidence"])))
+
+
+                ## ID stored if confident enough and not already identified ##
+                if (movie['confidence'] > 5) and (id_specific == None):
+                    id_specific = movie['song_id']
+                    time_movie_start = time.time() - (processing_time + movie["offset_seconds"])    #offset_seconds is the timestamp for the beginning of the sample
+                    h, m, s = time_format(timestamp_movie_playback())
+                    print ("Movie ID'd. Current movie time adjusted to %d:%d:%d" % (h, m, s))
+
+                ## Recalculate Current Marker Time; Greater Confidence expected to change time. ##
+                elif movie['confidence'] > 10:
+                    prev_time_movie_start = time_movie_start
+                    time_movie_start = time.time() - (processing_time + movie["offset_seconds"])    #offset_seconds is the timestamp for the beginning of the sample
+                    h, m, s = time_format(timestamp_movie_playback())
+                    print ("Current movie time adjusted to %d:%d:%d" % (h, m, s))
+                    
+                    ''' Any change in time greater than provided amount causes hardware to reset to minimize adverse effects when skipping through movie'''
+                    if abs(time_movie_start - prev_time_movie_start) >= reset_length:
+                        reset_hardware(hardware_directory)
+                        print ("Time Change Threshold Met: Resetting Hardware")
+                    
+                else:
+                    print ("Not enough Confidence.")
+                    h, m, s = time_format(timestamp_movie_playback())
+                    print ("Current movie time is %d:%d:%d" % (h, m, s))
+                        
+            except:
+                print ("\nWARNING: Audio Recognition Thread Error\n")    
+
 
 class EventMonitor(threading.Thread):
     def __init__(self, event_list, hardware_device_list):
@@ -53,7 +146,7 @@ class EventMonitor(threading.Thread):
 
 
         ### Wait for Main Program ###
-        start_event_monitor.wait()
+        start_monitoring.wait()
 
 
         ### Find Next Valid Event ###
@@ -252,8 +345,9 @@ def initialize_hardware(hardware_directory):
             except:
                 print ("initialize_hardware: error")
 
-        # Intialize Controller
-        importlib.import_module(hardware_directory[controller]["controller_driver"]).initialize(hardware_directory[controller])
+    # Intialize/Reset Controllers
+    reset_hardware(hardware_directory)
+
     return ()
 
 
@@ -414,13 +508,23 @@ def preprocess_patterns(event_file, hardware_device_list):
     return (event_file)
 
 
+def reset_hardware(hardware_directory):
+    '''
+    Passes the controller dictionary to the associated driver for initializing/resetting the hardware.
+    '''
+    # Intialize/Reset Controller
+    for controller in hardware_directory:
+        importlib.import_module(hardware_directory[controller]["controller_driver"]).initialize(hardware_directory[controller])
+    return ()
+
+
 def select_mode():
     global time_movie_start
     
     ### Select Playback Mode ###
     print ("\n\n\n####### MODE SELECTION #######")
     while True:
-        print ("\n\nInput Mode: \n 1. Offset Time \n 2. Dejavu Time\n")
+        print ("\n\nInput Mode: \n 1. Offset Time \n 2. Audio Sync Time\n")
         selection = int(input(""))
         
         # Offset #
@@ -429,13 +533,16 @@ def select_mode():
             time_movie_start = time.time() - time_playback_offset
             break
 
-        # Dejavu #
+        # Audio Recognition #
         elif selection == 2:
-            print ("\nFuture - Re-add Dejavu\n")
-            continue
-            #synctime.daemon = True
-            #synctime().start()
-            #mode = False
+            print ("\nAudio Recognition Starting...\n")
+            time_movie_start = time.time()
+            AudioSync.daemon = True
+            AudioSync().start()
+
+            ## Wait for AudioSync to intialize ##
+            audiosync_setup_complete.wait()
+            break
         
         else:
             print ("\nInvalid Input\n")
@@ -450,7 +557,7 @@ def select_session():
     ### Load Config File ###
     while True:
         try:
-            config = json.load(open('./config.json'))			
+            config = json.load(open('./config.json'))    
             current_session_folder = config["session_folder_current"]
             break
         except KeyError:
@@ -495,9 +602,16 @@ def select_session():
     return()
 
 
+def time_format(seconds):
+    m, s = divmod(seconds, 60)
+    h, m = divmod(m, 60)
+    return (h, m, s)   
+
+
 def timestamp_movie_playback():
     '''
     Calculates the current movie playback time based on the current CPU time.
+    Returns CPU time of current playback timestamp based on CPU time of movie start.
     '''
     global time_movie_start
     timestamp = time.time() - time_movie_start
@@ -557,7 +671,7 @@ try:
     
     ### Select Mode and Begin Monitoring ###
     select_mode()
-    start_event_monitor.set()    
+    start_monitoring.set()   
 
     ### Keep Main Thread Alive ###
     while True:

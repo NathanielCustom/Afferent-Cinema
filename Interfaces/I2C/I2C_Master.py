@@ -56,12 +56,9 @@ def I2C_block_data(address, byte_0, byte_block):
         # Send Data #
         try:
             bus.write_i2c_block_data(address, byte_0, byte_block_chunk)              # Write final (or only) 32 bytes of in byte_block
-        except OSError as error:
-            print (error)
-            print ("Reseting Line...")
-            print ("address: " + str(address))
-            print ("byte 0: " + str(byte_0))
-            print ("byte_block_chunk: " + str(byte_block_chunk))
+        except:
+            print ("I2C Block Send Fail")
+            print ("Address: %d, Byte_0: %d, Byte_Block_Chunk: %s" % (address, byte_0, byte_block_chunk))
                     
     thread_release()
     
@@ -79,12 +76,14 @@ def I2C_byte_data(address, byte_0, byte_1):
     '''
     
     thread_lock()
- 
-    #try:
-        # Send Data #
-    bus.write_byte_data(address, byte_0, byte_1)
-
-    #finally:
-    thread_release()
+    
+    # Send Data #
+    try:
+        bus.write_byte_data(address, byte_0, byte_1)
+    except:
+        print ("I2C Byte Send Fail")
+        print ("Address: %d, Byte_0: %d, Byte_1: %s" % (address, byte_0, byte_1))
+    finally:
+        thread_release()
 
     return()
