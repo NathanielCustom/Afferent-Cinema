@@ -35,10 +35,10 @@ However, a procedure for 'automatic syncronization to media' is close at hand. T
 >- One resistor from 5V+ to GPIO5 and another from 5V+ to GPIO6
 4. Download the repository.
 
-### Dejavu Afferent-Cinema Install
+### Audio Recognition Afferent-Cinema Install
 Coming "Valve Time"
 
-See https://github.com/worldveil/dejavu for more details on Dejavu.
+See https://github.com/worldveil/dejavu for more details on Dejavu, the implemented solution for Audio Recognition.
 
 # System Explanation
 ## Introduction
