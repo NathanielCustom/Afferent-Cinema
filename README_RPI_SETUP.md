@@ -8,9 +8,6 @@ There are two syncronization modes in Afferent Cinema:
 This guide will setup the RPi for the 'manual' mode.
 
 
-KNOWN ISSUE: Main.py needs to be changed to allow for Afferent Cinema to run without the audio recognition software (Dejavu) being installed.
-
-
 ## I2C
 
 Enable I2C on GPIOs --- as outlined in /boot/overlays/README section i2c-gpio
