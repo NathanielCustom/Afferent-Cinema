@@ -7,8 +7,14 @@ import json
 from operator import itemgetter # For sorting events in event_file by 'timestamp_start' value
 import os
 import copy
-from Audio_Recognition.dejavu import Dejavu
-from Audio_Recognition.dejavu.recognize import MicrophoneRecognizer
+try:
+    from Audio_Recognition.dejavu import Dejavu
+except:
+    print ("WARNING: Failed to Import Dejavu --- Audio Recognition will not work.")
+try:
+    from Audio_Recognition.dejavu.recognize import MicrophoneRecognizer
+except:
+    print ("WARNING: Failed to Import Dejavu.Recognize --- Audio Recognition will not work.")
 
 # Session
 folder_session = './Sessions/How_to_Train_Your_Dragon/'
@@ -557,7 +563,7 @@ def select_session():
     ### Load Config File ###
     while True:
         try:
-            config = json.load(open('./config.json'))    
+            config = json.load(open('./config.json'))
             current_session_folder = config["session_folder_current"]
             break
         except KeyError:
