@@ -15,14 +15,13 @@ Afferent Cinema follows a schedule of timed events to trigger in coorelation wit
 
 The lofty vision of Afferent Cinema is to design a solution where an end user, with basic technical knowledge, can connect all hardware and enjoy a 4D cinematic experience with minimal, manual configuration.
 
-- Automatic synchronization to media
+- Automatic synchronization to media (done)
 - Modular hardware connectivity
 - Device calibration standards
 - Automatic and manual retrieval of compatible drivers and events
 
 We are a long way from implementing all those features.
 
-However, a procedure for 'automatic syncronization to media' is close at hand. There are a few more hurdles to overcome, just no timetable on their completion. So for now, enjoy the Standard Install.
 
 ### Standard Afferent-Cinema Install
 
@@ -36,7 +35,7 @@ However, a procedure for 'automatic syncronization to media' is close at hand. T
 4. Download the repository.
 
 ### Audio Recognition Afferent-Cinema Install
-Coming "Valve Time"
+Documentation Coming "Valve Time"
 
 See https://github.com/worldveil/dejavu for more details on Dejavu, the implemented solution for Audio Recognition.
 
