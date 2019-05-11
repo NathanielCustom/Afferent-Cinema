@@ -6,7 +6,7 @@
             "color": [100,100,100], 
             "description":"begin house lites up",
             "direction": "null",
-            "pattern": "pulseall", 
+            "pattern": "all", 
             "position": 0, 
             "time_transition": 0.1, 
             "timestamp_center_start": 0.1, 
@@ -26,32 +26,202 @@
             "color": [50,50,50], 
             "description":"clouds lighten scene",
             "direction": "null", 
-            "pattern": "pulseall", 
+            "pattern": "all", 
             "position": 0, 
             "time_transition": 3, 
             "timestamp_center_start": 13.0, 
             "wavespeed": 1
         },
         {
+            "color": [25,25,25], 
+            "description":"clouds whisked away",
+            "direction": "null", 
+            "pattern": "all", 
+            "position": 0, 
+            "time_transition": 0.5, 
+            "timestamp_center_start": 18.0, 
+            "wavespeed": 1
+        },
+        {
+            "color": [50,50,50], 
+            "description":"more clouds appear",
+            "direction": "null", 
+            "pattern": "all", 
+            "position": 0, 
+            "time_transition": 8, 
+            "timestamp_center_start": 20.0, 
+            "wavespeed": 1
+        },
+        {
             "color": [1,1,1], 
             "description":"scene darkens",
             "direction": "null",  
-            "pattern": "pulseall", 
+            "pattern": "all", 
             "position": 0, 
             "time_transition": 2, 
             "timestamp_center_start": 30.00, 
             "wavespeed": 1
-        }, 
+        },
+        {
+            "color": [62,32,1], 
+            "description":"village scene",
+            "direction": "null",  
+            "pattern": "wavefromleft", 
+            "position": 0, 
+            "time_transition": 2, 
+            "timestamp_center_start": 48.00, 
+            "wavespeed": 0.25
+        },
+        {
+            "color": [0,0,0], 
+            "description":"shadow start",
+            "direction": "null",  
+            "pattern": "frontcenterandright", 
+            "position": 0, 
+            "time_transition": 0.75, 
+            "timestamp_center_start": 61.00, 
+            "wavespeed": 1
+        },
+        {
+            "color": [62,32,1], 
+            "description":"shadow end",
+            "direction": "null",  
+            "pattern": "frontcenterandright", 
+            "position": 0, 
+            "time_transition": 0.5, 
+            "timestamp_center_start": 62.00, 
+            "wavespeed": 1
+        },
+        {
+            "color": [255,125,0], 
+            "description":"fire against door start",
+            "direction": "null",  
+            "pattern": "frontsonly", 
+            "position": 0, 
+            "time_transition": 0.5, 
+            "timestamp_center_start": 70.5, 
+            "wavespeed": 1
+        },
+        {
+            "color": [62,32,1], 
+            "description":"fire against door end",
+            "direction": "null",  
+            "pattern": "frontsonly", 
+            "position": 0, 
+            "time_transition": 0.5, 
+            "timestamp_center_start": 71.5, 
+            "wavespeed": 1
+        },   
         {
             "color": [125,65,0], 
             "description":"outdoor attack scene",
             "direction": "null", 
-            "pattern": "pulseall", 
+            "pattern": "all", 
             "position": 0, 
             "time_transition": 1, 
             "timestamp_center_start": 73.0, 
             "wavespeed": 1.0
         }, 
+        {
+            "color": [255,125,0], 
+            "description":"right flash",
+            "direction": "null", 
+            "pattern": "rightsonly", 
+            "position": 0, 
+            "time_transition": 0.25, 
+            "timestamp_center_start": 82.5, 
+            "wavespeed": 1.0
+        },
+        {
+            "color": [125,65,0], 
+            "description":"right flash end",
+            "direction": "null", 
+            "pattern": "rightsonly", 
+            "position": 0, 
+            "time_transition": 0.25, 
+            "timestamp_center_start": 83, 
+            "wavespeed": 1.0
+        },
+        {
+            "color": [255,125,0], 
+            "description":"left flash",
+            "direction": "null", 
+            "pattern": "leftsonly", 
+            "position": 0, 
+            "time_transition": 0.25, 
+            "timestamp_center_start": 97.5, 
+            "wavespeed": 1.0
+        },
+        {
+            "color": [125,65,0], 
+            "description":"left flash end",
+            "direction": "null", 
+            "pattern": "leftsonly", 
+            "position": 0, 
+            "time_transition": 0.25, 
+            "timestamp_center_start": 98, 
+            "wavespeed": 1.0
+        },
+        {
+            "color": [255,125,0], 
+            "description":"right flash",
+            "direction": "null", 
+            "pattern": "rightsonly", 
+            "position": 0, 
+            "time_transition": 0.25, 
+            "timestamp_center_start": 99.5, 
+            "wavespeed": 1.0
+        },
+        {
+            "color": [125,65,0], 
+            "description":"right flash end",
+            "direction": "null", 
+            "pattern": "rightsonly", 
+            "position": 0, 
+            "time_transition": 0.25, 
+            "timestamp_center_start": 100, 
+            "wavespeed": 1.0
+        },
+        {
+            "color": [255,125,0], 
+            "description":"left flash",
+            "direction": "null", 
+            "pattern": "leftsonly", 
+            "position": 0, 
+            "time_transition": 0.25, 
+            "timestamp_center_start": 101.0, 
+            "wavespeed": 1.0
+        },
+        {
+            "color": [125,65,0], 
+            "description":"left flash end",
+            "direction": "null", 
+            "pattern": "leftsonly", 
+            "position": 0, 
+            "time_transition": 0.25, 
+            "timestamp_center_start": 102, 
+            "wavespeed": 1.0
+        },
+        {
+            "color": [255,125,0], 
+            "description":"left flash",
+            "direction": "null", 
+            "pattern": "leftsonly", 
+            "position": 0, 
+            "time_transition": 0.25, 
+            "timestamp_center_start": 102.0, 
+            "wavespeed": 1.0
+        },
+        {
+            "color": [125,65,0], 
+            "description":"left flash end",
+            "direction": "null", 
+            "pattern": "leftsonly", 
+            "position": 0, 
+            "time_transition": 0.25, 
+            "timestamp_center_start": 103, 
+            "wavespeed": 1.0
+        },                
         {
             "color": [255,125,0],
             "old_color": [200,100,0], 
@@ -72,15 +242,65 @@
             "time_transition": 1, 
             "timestamp_center_start": 105.75, 
             "wavespeed": 8
-        }, 
+        },
         {
-            "color": [80,65,0], 
-            "description":"smith shop",
+            "color": [255,125,0], 
+            "description":"left flash",
             "direction": "null", 
-            "pattern": "pulseall", 
+            "pattern": "leftsonly", 
             "position": 0, 
-            "time_transition": 1.0, 
-            "timestamp_center_start": 137.0, 
+            "time_transition": 0.25, 
+            "timestamp_center_start": 106.0, 
+            "wavespeed": 1.0
+        },
+        {
+            "color": [125,65,0], 
+            "description":"left flash end",
+            "direction": "null", 
+            "pattern": "leftsonly", 
+            "position": 0, 
+            "time_transition": 0.25, 
+            "timestamp_center_start": 107, 
+            "wavespeed": 1.0
+        },
+        {
+            "color": [62,32,0], 
+            "description":"dim for laterns",
+            "direction": "null", 
+            "pattern": "all", 
+            "position": 0, 
+            "time_transition": 2, 
+            "timestamp_center_start": 129, 
+            "wavespeed": 1.0
+        },
+        {
+            "color": [125,65,0], 
+            "description":"laterns raised - normal scene",
+            "direction": "null", 
+            "pattern": "all", 
+            "position": 0,
+            "time_transition": 4, 
+            "timestamp_center_start": 131.0, 
+            "wavespeed": 1.0
+        },  
+        {
+            "color": [160,125,0], 
+            "description":"full flash",
+            "direction": "null", 
+            "pattern": "all", 
+            "position": 0, 
+            "time_transition": 0.25, 
+            "timestamp_center_start": 161, 
+            "wavespeed": 1.0
+        },
+        {
+            "color": [125,65,0], 
+            "description":"full flash end",
+            "direction": "null", 
+            "pattern": "all", 
+            "position": 0, 
+            "time_transition": 0.25, 
+            "timestamp_center_start": 162.0, 
             "wavespeed": 1.0
         },
         {
@@ -93,7 +313,7 @@
             "time_transition": 1, 
             "timestamp_center_start": 181.0,  
             "wavespeed": 4
-        }, 
+        },                       
         {
             "color": [125,65,0], 
             "description":"big explosion (slo-mo) ends",
@@ -133,7 +353,7 @@
             "pattern": "frontcenterandright", 
             "position": 0, 
             "time_transition": 0.5,
-            "timestamp_center_start": 346.0, 
+            "timestamp_center_start": 346, 
             "wavespeed": 1.0
         }, 
         {
@@ -143,9 +363,19 @@
             "pattern": "frontcenterandright", 
             "position": 0, 
             "time_transition": 0.5,
-            "timestamp_center_start": 346.5, 
+            "timestamp_center_start": 347.0, 
             "wavespeed": 1.0
-        }, 
+        },
+        {
+            "color": [1,1,10], 
+            "description":"outside battle scene",
+            "direction": "null", 
+            "pattern": "all", 
+            "position": 0, 
+            "time_transition": 1, 
+            "timestamp_center_start": 349,  
+            "wavespeed": 1.0
+        },         
         {
             "color": [0,32,255],
             "old_color": [0,8,127], 
@@ -158,7 +388,7 @@
             "wavespeed": 5
         },
         {
-            "color": [125,65,0], 
+            "color": [1,1,10], 
             "description":"blue explosion ends",
             "direction": "null",  
             "pattern": "wavefromfront", 
@@ -167,6 +397,16 @@
             "timestamp_center_start": 378.5, 
             "wavespeed": 5
         },
+        {
+            "color": [125,65,0], 
+            "description":"back to battle scene",
+            "direction": "null", 
+            "pattern": "all", 
+            "position": 0, 
+            "time_transition": 3, 
+            "timestamp_center_start": 393, 
+            "wavespeed": 1.0
+        },        
         {
             "color": [255,125,0],
             "old_color": [200,100,0], 
@@ -180,7 +420,7 @@
         },
         {
             "color": [125,65,0], 
-            "description":"hiding hiccup",
+            "description":"hiding hiccup end",
             "direction": "null",  
             "pattern": "frontsonly", 
             "position": 0, 

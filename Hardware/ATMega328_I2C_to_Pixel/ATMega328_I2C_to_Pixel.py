@@ -8,9 +8,11 @@ Sends to I2C_Master: Hex Address, First Byte, [List of Bytes]
 ### External Module Imports ###
 import Interfaces.I2C.I2C_Master as I2C
 import time
+import threading
 
 ### Globals ###
-send_delay = 0.01          # Puts a delay after sending command to prevent flooding ATMega
+lock = threading.Lock()
+send_delay = 0.001          # Puts a delay after sending command to prevent flooding ATMega
 
 
 ###################################################################################################################################################
@@ -57,6 +59,7 @@ def main(device, values):
     '''
 
     ### Declare Variables ###
+    global lock
     global send_delay
     
     I2C_address = device["I2C_address"]
@@ -76,9 +79,10 @@ def main(device, values):
     for LED_address in device["address"]:                                   # Cycle through all LED_addresses...
         data_list.extend([LED_address, red, green, blue])                       # ... and add color values after each address.
         # Example: data_list = [1, 240, 40, 0, 2, 240, 40, 0, 3, 240, 40, 0,...]
-    # print ("data_list: " + str(data_list))
+    #print ("data_list: " + str(data_list))
     
     # Build byte_block and Send
+    lock.acquire()
     for data in data_list:
         if len(byte_block) < 31:                                                # If byte_block is not full, add data.
             if (byte_0 == 'null'):                                                  # Has byte_0 been filled?
@@ -94,5 +98,6 @@ def main(device, values):
         if byte_block != 'null':                                                # ... and data is queued...
             I2C.I2C_block_data(I2C_address, byte_0, byte_block)              # ...then, send it
             time.sleep(send_delay)
-
+    lock.release()
+    
     return()

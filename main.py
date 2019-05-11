@@ -79,7 +79,7 @@ class AudioSync(threading.Thread):
 
 
         ############ Audio Recognition##############  
-        sample_length = 3                                                # Initial sample length to identify media
+        sample_length = 3                                               # Initial sample length to identify media
         reset_length = 5                                                # Amount of time (seconds) changed before resetting hardware.
         id_specific = None
 
@@ -89,7 +89,7 @@ class AudioSync(threading.Thread):
 
                 # Reduce sample length once track ID'd
                 if id_specific != None:
-                    sample_length = 2
+                    sample_length = 5
 
                 try:    
                     movie = djv.recognize(MicrophoneRecognizer, seconds=sample_length)
@@ -106,7 +106,7 @@ class AudioSync(threading.Thread):
 
 
                 ## ID stored if confident enough and not already identified ##
-                if (movie['confidence'] > 5) and (id_specific == None):
+                if (movie['confidence'] > 3) and (id_specific == None):
                     id_specific = movie['song_id']
                     time_movie_start = time.time() - (processing_time + movie["offset_seconds"])    #offset_seconds is the timestamp for the beginning of the sample
                     h, m, s = time_format(timestamp_movie_playback())
@@ -232,6 +232,7 @@ class EventProcess(threading.Thread):
             
             #try:
             for device in hardware_device_list_process:
+                #print (hardware_device_list_process)
                 # Example: hardware_device_list_process = [ {"address":[1,2,3],...}, {"address":[4,5,6],...} ]
                 # Example: device = 
                 #   {"address":[1,2,3], "controller":"PCA9685", "x_position":0, "values":[120, 46, 34], I2C_address":68}
@@ -242,7 +243,7 @@ class EventProcess(threading.Thread):
                 # Calculate value_percent based on current time and pattern
                 timestamp_position = importlib.import_module(pattern_folder).timestamp_position(device, self.event)
                 value_percent = ( timestamp_movie_playback() - timestamp_position ) / self.event["time_transition"]
-
+                
 
                 ## Legal value check ##
                 if value_percent >= 1.00:                                            
@@ -257,14 +258,18 @@ class EventProcess(threading.Thread):
                     # Apply value_percent to target value (defined in event) as a 'step'.
                     values = importlib.import_module(device["device_driver"]).values_step(device, self.event, value_percent, folder_session)
                         # Example: values = [230, 45, 0]
-
+                    
 
                     '''
                     Error Fixing: It is beyond me why as soon as list "values" is sent to "controller_driver".main() it
                     loses its values and becomes and empty list. To correct, I have made a deep copy before the function.
                     '''
                     values_to_driver = copy.deepcopy(values)    # values list losing values when sending so making a deep copy before sending.
-                    importlib.import_module(device["controller_driver"]).main(device, values_to_driver)
+                    #importlib.import_module(device["controller_driver"]).main(device, values_to_driver)
+                    
+                    ## Execute Event Trigger Thread ##
+                    EventTrigger.daemon = True
+                    EventTrigger(device, values_to_driver).start()
 
                 
                 ## Update 'Master' Hardware List ##
@@ -282,6 +287,16 @@ class EventProcess(threading.Thread):
                 time.sleep( frequency_event_process - (endloop - startloop) )
 
         return()
+
+
+class EventTrigger(threading.Thread):
+    def __init__(self, device, values_to_driver):
+        threading.Thread.__init__(self)
+        self.device = device
+        self.values_to_driver = values_to_driver
+
+    def run(self):
+        importlib.import_module(self.device["controller_driver"]).main(self.device, self.values_to_driver)
 
 
 class UpdateDeviceList(threading.Thread):
@@ -530,12 +545,12 @@ def select_mode():
     ### Select Playback Mode ###
     print ("\n\n\n####### MODE SELECTION #######")
     while True:
-        print ("\n\nInput Mode: \n 1. Offset Time \n 2. Audio Sync Time\n")
+        print ("\n\nInput Mode: \n 1. Offset Time \n 2. Audio Sync Time\n 3. Audio Sync + Offset\n")
         selection = int(input(""))
         
         # Offset #
         if selection == 1:
-            time_playback_offset = int(input("Input current movie time.\n"))
+            time_playback_offset = int(input("\n\nInput current movie time then press 'Enter'. Afferent Cinema will begin upon hitting 'Enter'.\n"))
             time_movie_start = time.time() - time_playback_offset
             break
 
@@ -548,6 +563,18 @@ def select_mode():
 
             ## Wait for AudioSync to intialize ##
             audiosync_setup_complete.wait()
+            break
+        
+        # Audio Recognition + Offset #
+        elif selection == 3:
+            print ("\nAudio Recognition Starting...\n")
+            AudioSync.daemon = True
+            AudioSync().start()
+
+            ## Wait for AudioSync to intialize ##
+            audiosync_setup_complete.wait()
+            time_playback_offset = int(input("\n\nInput current movie time then press 'Enter'. Afferent Cinema will begin upon hitting 'Enter'.\n"))
+            time_movie_start = time.time() - time_playback_offset
             break
         
         else:
@@ -580,12 +607,12 @@ def select_session():
         print ("\nCurrent Session Folder: " + str(current_session_folder))
         print ("(K)eep or (S)elect new folder?")
         selection = input("")
-        if selection == 'K':
+        if selection == 'K' or selection == 'k':
             if os.path.isdir(current_session_folder):                
                 break
             else:
                 print ("\nNot a valid folder. Please (S)elect a new folder.")    
-        elif selection == 'S': 
+        elif selection == 'S' or selection == 's': 
             contents = os.listdir("./Sessions/")
             while True:
                 print ("\nInput new folder from options below:")
