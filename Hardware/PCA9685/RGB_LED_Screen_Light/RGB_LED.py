@@ -34,11 +34,12 @@ def values_step(device, event, value_percent, folder_session): # May need to pas
 	value_beginning = device["values"]
 	index_range = len(values_color)
 	for index in range(index_range):
-			value_current = cie1931_lightness(values_color[index])
-			value_delta = value_current - value_beginning[index]
+			value_target = cie1931_lightness(values_color[index])
+			value_delta = value_target - value_beginning[index]
 			# value_delta = values_color[index] - value_beginning[index]
 			value_delta_step = value_delta * value_percent
 			value_current = value_beginning[index] + value_delta_step
 			# value_current = cie1931_lightness(value_current)
 			values.append(value_current)
+	
 	return(values)

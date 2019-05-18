@@ -165,11 +165,15 @@ class EventMonitor(threading.Thread):
             while timestamp_movie_playback() > self.event_list[event_index]['timestamp_start'] + buffer_event_trigger :  # Cycle through events until timestamp_start + buffer trigger is less than the current time stamp
                 event_index = event_index + 1
             ismonitored = True
+            
+            # Display #
+            print ("Event Queued: " + str(self.event_list[event_index]["description"]))   
+        
         except:
             print ("EventMonitor: Thread " + str(threading.current_thread()) + " has no Events to monitor.")
             ismonitored = False
 
-        ### Monitor Event ###
+        ### Monitor Event ###        
         while ismonitored == True:
             startloop = time.time()
             ## Check Current Events for valid Trigger Time ##
@@ -180,7 +184,10 @@ class EventMonitor(threading.Thread):
                     ## Execute Event Thread ##
                     EventProcess.daemon = True
                     EventProcess(event, self.hardware_device_list, threading.current_thread()).start()
-                    event_index += 1   
+                    event_index += 1
+                    
+                    # Display #
+                    print ("Event Queued: " + str(self.event_list[event_index]["description"]))   
 
                 else:
                     '''
@@ -206,15 +213,11 @@ class EventProcess(threading.Thread):
 
     def run(self):
         global frequency_event_process
-
-        ### Display ###
-        print ("Event Queued: " + str(self.event["description"]))
-
+        
         
         ### Variables ###
         hardware_device_list_process = copy.deepcopy(self.hardware_device_list_monitor)
         pattern_folder = which_pattern_folder(self.event)
-        devicelist_lock = threading.Lock()
 
 
         ### Remove Devices not Triggered by Pattern ###
@@ -226,77 +229,80 @@ class EventProcess(threading.Thread):
         hardware_device_list_process = hw_isincluded_list             # Copy Over New List
 
 
-        ### Process Devices for Trigger Time & Send Commands ###
-        while True:
+        ## Execute Device Trigger Thread ##
+        for device in hardware_device_list_process:
+            # Example: hardware_device_list_process = [ {"address":[1,2,3],...}, {"address":[4,5,6],...} ]
+            # Example: device = 
+            #   {"address":[1,2,3], "controller":"PCA9685", "x_position":0, "values":[120, 46, 34], I2C_address":68}
+               
+            DeviceTrigger.daemon = True
+            DeviceTrigger(device, self.event, self.monitor_id, pattern_folder).start()
+
+
+        return()
+
+
+class DeviceTrigger(threading.Thread):
+    def __init__(self, device, event, monitor_id, pattern_folder):
+        threading.Thread.__init__(self)
+        self.device = device
+        self.event = event
+        self.monitor_id = monitor_id
+        self.pattern_folder = pattern_folder
+
+    def run(self):
+        devicelist_lock = threading.Lock()
+        isProcessing = True
+        
+        ### Process Device for Trigger Time & Send Commands ###
+        while isProcessing:
             startloop = time.time()
             
-            #try:
-            for device in hardware_device_list_process:
-                #print (hardware_device_list_process)
-                # Example: hardware_device_list_process = [ {"address":[1,2,3],...}, {"address":[4,5,6],...} ]
-                # Example: device = 
-                #   {"address":[1,2,3], "controller":"PCA9685", "x_position":0, "values":[120, 46, 34], I2C_address":68}
+            ## Build values List ##
 
+            # Calculate value_percent based on current time and pattern
+            timestamp_position = importlib.import_module(self.pattern_folder).timestamp_position(self.device, self.event)
+            value_percent = ( timestamp_movie_playback() - timestamp_position ) / self.event["time_transition"]
+            
 
-                ## Build values List ##
-
-                # Calculate value_percent based on current time and pattern
-                timestamp_position = importlib.import_module(pattern_folder).timestamp_position(device, self.event)
-                value_percent = ( timestamp_movie_playback() - timestamp_position ) / self.event["time_transition"]
+            ## Legal value check ##
+            if value_percent >= 1.00:                                            
+                value_percent = 1.00                                                        # Transition Complete...
+            if value_percent < 0:
+                value_percent = 0
                 
 
-                ## Legal value check ##
-                if value_percent >= 1.00:                                            
-                    value_percent = 1.00                                                        # Transition Complete...
-                    del hardware_device_list_process[hardware_device_list_process.index(device)]      # Remove completed Device from hardware_device_list_process (EventProcess instance).                  
-                if value_percent < 0:
-                    value_percent = 0
+            ## Send values to controller ##
+            if value_percent != 0:            # Otherwise, queued events where particular device is not triggered yet will interfere with 'Zero' commands
+                # Apply value_percent to target value (defined in event) as a 'step'.
+                values = importlib.import_module(self.device["device_driver"]).values_step(self.device, self.event, value_percent, folder_session)
+                    # Example: values = [230, 45, 0]
                 
-
-                ## Send values to controller ##
-                if value_percent != 0:            # Otherwise, queued events where particular device is not triggered yet will interfere with 'Zero' commands
-                    # Apply value_percent to target value (defined in event) as a 'step'.
-                    values = importlib.import_module(device["device_driver"]).values_step(device, self.event, value_percent, folder_session)
-                        # Example: values = [230, 45, 0]
-                    
-
-                    '''
-                    Error Fixing: It is beyond me why as soon as list "values" is sent to "controller_driver".main() it
-                    loses its values and becomes and empty list. To correct, I have made a deep copy before the function.
-                    '''
-                    values_to_driver = copy.deepcopy(values)    # values list losing values when sending so making a deep copy before sending.
-                    #importlib.import_module(device["controller_driver"]).main(device, values_to_driver)
-                    
-                    ## Execute Event Trigger Thread ##
-                    EventTrigger.daemon = True
-                    EventTrigger(device, values_to_driver).start()
-
-                
-                ## Update 'Master' Hardware List ##
+                # Error Fixing #
                 '''
-                Writes values to EventMonitor ("master") instance of hardware_device_list[_monitor]
+                Error Fixing: It is beyond me why as soon as any equation is executed values loses
+                its value and becomes and empty list. To correct, I have made a deep copy
+                before any equation.
                 '''
-                if value_percent == 1.00:
-                    # Start thread to update instance of device list
-                    UpdateDeviceList.daemon = True
-                    UpdateDeviceList(device, values, self.monitor_id, devicelist_lock).start()
+                values_copy = copy.deepcopy(values)
+                
+                importlib.import_module(self.device["controller_driver"]).main(self.device, values)
+                
+            ## Update 'Master' Hardware List ##
+            '''
+            Writes values to EventMonitor ("master") instance of hardware_device_list[_monitor]
+            '''
+            if value_percent == 1.00:
+                # Start thread to update instance of device list
+                UpdateDeviceList.daemon = True
+                UpdateDeviceList(self.device, values_copy, self.monitor_id, devicelist_lock).start()
+                isProcessing = False
 
             ## Manage the amount of time spent on calculating values ##
             endloop = time.time()
             if  frequency_event_process - ( endloop - startloop ) > 0:
                 time.sleep( frequency_event_process - (endloop - startloop) )
-
-        return()
-
-
-class EventTrigger(threading.Thread):
-    def __init__(self, device, values_to_driver):
-        threading.Thread.__init__(self)
-        self.device = device
-        self.values_to_driver = values_to_driver
-
-    def run(self):
-        importlib.import_module(self.device["controller_driver"]).main(self.device, self.values_to_driver)
+        
 
 
 class UpdateDeviceList(threading.Thread):
@@ -708,7 +714,8 @@ try:
 
     ### Keep Main Thread Alive ###
     while True:
-        time.sleep(3) # Pass would cause Dejavu to fail with IOError Overflow, value is arbitrary
+        time.sleep(1) # Pass would cause Dejavu to fail with IOError Overflow, value is arbitrary
+        #print ("Thread Count: " + str(threading.active_count()))
        
 except KeyboardInterrupt:
     keyboardescape(hardware_directory)

@@ -32,7 +32,7 @@ def cie1931_lightness(L):
 def values_step(device, event, value_percent, folder_session): # May need to pass custom colors file in future.
 	# Example: device = 
     	#   {"address":[0,1,2,3,4,5,6], "device":"WS281x", "x_position":0, "values":[120, 46, 34], I2C_address":68}	
-	
+
 	if isinstance(event["color"], str) == False:
 		values_color = event["color"]
 	else:
@@ -49,8 +49,8 @@ def values_step(device, event, value_percent, folder_session): # May need to pas
 	value_beginning = device["values"]
 	index_range = len(values_color)
 	for index in range(index_range):
-			value_current = cie1931_lightness(values_color[index])
-			value_delta = value_current - value_beginning[index]
+			value_target = cie1931_lightness(values_color[index])
+			value_delta = value_target - value_beginning[index]
 			# value_delta = values_color[index] - value_beginning[index]
 			value_delta_step = value_delta * value_percent
 			value_current = value_beginning[index] + value_delta_step
