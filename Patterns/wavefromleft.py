@@ -1,5 +1,5 @@
 def pattern_name():
-    return("wavefromfront")
+    return("wavefromleft")
 
 
 def device_inclusion(device):
