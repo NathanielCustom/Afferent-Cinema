@@ -3,7 +3,7 @@ kiwisolver==1.0.1
 matplotlib==2.2.2
 modernize==0.6.1
 mysql-connector-python==8.0.11
-numpy==1.14.5
+numpy==1.22.0
 protobuf==3.6.0
 PyAudio==0.2.11
 pydub==0.22.1
